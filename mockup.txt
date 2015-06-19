@@ -1,0 +1,36 @@
+/alife
+  /parser
+    datParser.py
+    xmlParser.py
+  /simulate
+    flat.py*
+    agecites.py*
+  /txtmine
+    util.py (tokenization, save/load, parsing output)
+    lda.py
+    word2vec.py
+    docRepresent.py*
+    /scripts
+  /graphmine
+    util.py
+    densityEst.py*
+  /pipeline
+  /traits
+    traitshare.py*
+    price.py*
+    heritability.py*
+    traitFreq.py*
+  /dooropening
+    dooropening.py*
+  /visualize
+    heatmap.py
+    topicVis.py*
+    tratiFreqVis.py*
+    activityVis.py*
+  /util   
+    dbutil.py*    
+    randpat.py*
+    parallelMap.py
+    parallelMapInsert.py
+    
+    
