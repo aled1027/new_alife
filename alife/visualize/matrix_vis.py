@@ -32,7 +32,7 @@ def plot3d(matrix, show=True, savefn=None, plt_type='bar',
         plt.ylabel(xlabel)
     if ylabel is not None:
         plt.xlabel(ylabel)
-    if zlable is not None:
+    if zlabel is not None:
         plt.zlabel(zlabel)
     if title is not None:
         plt.title(title)
