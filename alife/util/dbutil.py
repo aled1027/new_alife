@@ -1,17 +1,20 @@
 # Utilities for reading data from mongodb. 
 from pymongo import MongoClient
 
-#global
-#DB = MongoClient().patents
-
-def get_text(pat, coll_name = 'pat_text'):
+def get_texts(patents, coll_name = 'pat_text', generator = False):
+    """
+    Access the text field from an iterable of patent documents.
+    """
+    require(coll_name in ['pat_text, patns'])
     if coll_name == 'pat_text':
-        return pat['patText']
+        texts = (pat['patText'] for pat in patents)
     elif coll_name == 'patns':
-        text = ''
-        if 'title' in pat:
-            text += (pat['title'] + ' ')
-        if 'abstract' in pat:
-            text += pat['abstract']
-        return text
-    
+        texts = (pat['title'] + ' ' + pat['abstract'] for pat in patents)
+    else:
+        raise RuntimeError('Collection {} not supported, or has no text field'.format(coll_name))
+    if generator:
+        return texts
+    else:
+        return list(texts)
+
+
