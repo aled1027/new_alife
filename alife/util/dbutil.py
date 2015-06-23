@@ -2,7 +2,7 @@
 from pymongo import MongoClient
 
 #global
-DB = MongoClient().patents
+#DB = MongoClient().patents
 
 def get_text(pat, coll_name = 'pat_text'):
     if coll_name == 'pat_text':

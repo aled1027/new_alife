@@ -1,8 +1,13 @@
 # A tokenizer. 
 from alife.txtmine import util as txtutil
+from alife.txtmine import stoplists
+
+english_stops = stoplists.load_stoplist('english')
+patent_stops = stoplists.load_stoplist('patents')
+all_stops = list(set(english_stops).union(set(patent_stops)))
 
 class Tokenizer(object):
-    def __init__(self, replace_hyphens=True, stemming=False, stopwords=None):
+    def __init__(self, replace_hyphens=True, stemming=False, stopwords=all_stops):
         self.replace_hyphens = replace_hyphens
         self.stemming = stemming
         self.stopwords = stopwords
@@ -17,7 +22,3 @@ class Tokenizer(object):
         if self.stemming:
             wordlist = txtutil.stem_words_in_list(wordlist)
         return wordlist
-        
-        
-        
-    

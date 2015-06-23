@@ -7,7 +7,8 @@
     agecites.py*
   /txtmine
     /stoplists
-    util.py (tokenization, save/load, parsing output)
+    util.py (preprocessing, save/load, parsing output)
+    tokenize.py
     lda.py
     word2vec.py
     docRepresent.py*
@@ -24,7 +25,9 @@
   /dooropening
     dooropening.py*
   /visualize
-    heatmap.py
+    matrix_vis.py
+    -->heatmap
+    -->3dplot
     topicVis.py*
     tratiFreqVis.py*
     activityVis.py*
