@@ -21,6 +21,8 @@ def first_order_trait_distance(parent_pno, trait='tf-idf'):
     trait_info = {'tf-idf': ('tfidfStems', tfidf_dist)} # Later, we will support other traits.
     require(trait=='tf-idf')
     trait_field,dist_func = trait_info[trait]
+    sum_fieldname = '_'.join(['fotd_sum', trait])
+    avg_fieldname = '_'.join(['fotd_avg', trait])
     parent = DB.cite_net.find_one({'_id': parent_pno},{'citedby': 1, trait_field:1})
     stats = {}
     door_openingness = 0
@@ -29,8 +31,8 @@ def first_order_trait_distance(parent_pno, trait='tf-idf'):
         logging.warning('No trait field in patent {}.'.format(parent_pno))
         return None # Is this the best null value to return?
     if parent['citedby'] is None:
-        stats['fotd_avg'] = 0
-        stats['fotd_sum'] = 0
+        stats[sum_fieldname] = 0
+        stats[avg_fieldname] = 0
         return stats
     # For each child, measure the distance between its traits and the parent's traits.
     # Keep a running total in door_openingness. 
@@ -42,8 +44,9 @@ def first_order_trait_distance(parent_pno, trait='tf-idf'):
         else:
             door_openingness += dist_func(parent[trait_field], child[trait_field])
             n_childrin_with_traits += 1
-    stats['fotd_sum'] = door_openingness
-    stats['fotd_avg'] = float(door_openingness)/n_children_with_traits # The average fotd is the total divided by the number of children (with traits)
+    stats[sum_fieldname] = door_openingness
+    # The average fotd is the total divided by the number of children (with traits)
+    stats[avg_fieldname] = float(door_openingness)/n_children_with_traits 
     return stats
     
     

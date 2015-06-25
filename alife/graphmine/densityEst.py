@@ -11,6 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 data_dir = '/Users/jacobmenick/Desktop/alife_refactor/alife/data/surfaces'
 freq_fn = '/'.join([data_dir, 'freq_surface.npy'])
 exist_fn = '/'.join([data_dir, 'exist_surface.npy'])
+prob_fn = '/'.join([data_dir, 'prob_surface.npy'])
 freq = np.load(freq_fn)
 exist = np.load(exist_fn)[:,:freq.shape[1]]
 
@@ -39,6 +40,14 @@ def divide_matrices(m1,m2):
             return float(x)/y
     return np.array([[div(x1,x2) for x1,x2 in zip(r1,r2)] 
                      for r1,r2 in zip(m1,m2)])
+
+def divide_vectors(v1,v2):
+    def div(x,y):
+        if x == 0 or y == 0:
+            return 0
+        else:
+            return float(x)/y
+    return np.array([div(xi,yi) for xi,yi in zip(v1,v2)])
 
 def hist_to_full_arr(hist):
     """
