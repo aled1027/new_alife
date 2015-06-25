@@ -5,6 +5,8 @@
   /simulate
     flat.py*
     agecites.py*
+  /neutralJS
+    That whole project*
   /txtmine
     /stoplists
     util.py (preprocessing, save/load, parsing output)
@@ -36,5 +38,6 @@
     randpat.py*
     parallelMap.py
     parallelMapInsert.py
+
     
     
