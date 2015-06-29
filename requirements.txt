@@ -1,0 +1,10 @@
+numpy
+scipy
+matplotlib
+pymongo
+mongomock
+gensim
+nltk
+scikitlearn
+
+
