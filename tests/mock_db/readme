@@ -1,0 +1,5 @@
+#mockdb
+
+This module creates a mock MongoDB instance for testing on machines without the database present. 
+It is intended to encourage the frequent use of testing and to enable testing of the data processing 
+pipeline. 
