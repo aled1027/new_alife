@@ -49,7 +49,7 @@ def first_order_trait_distance(parent_pno, trait='tf-idf'):
     stats[avg_fieldname] = float(door_openingness)/n_children_with_traits 
     return stats
     
-    
+
         
         
     

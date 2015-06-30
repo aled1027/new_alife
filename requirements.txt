@@ -2,9 +2,12 @@ numpy
 scipy
 matplotlib
 pymongo
-mongomock
+mongomock (my fork)
 gensim
 nltk
 scikitlearn
+tsne
+
+
 
 
