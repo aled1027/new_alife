@@ -2,7 +2,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def test_scheme(colors,show=False,savefn='test_colorscheme.png'):
+def _test_scheme(colors,show=True,savefn=None):
+    """
+    Tests a color scheme (list of colors) by plotting equally spaced in a row, 
+    one for each color. 
+    """
     fig = plt.figure()
     fig.set_size_inches(18.5,10.5)
     n = len(colors)
@@ -14,26 +18,44 @@ def test_scheme(colors,show=False,savefn='test_colorscheme.png'):
     if show:
         plt.show()
 
-def hsl_to_rgb(h,s,l):
-    pass
+def _hsl_to_rgb(hsl):
+    h,s,l = hsl
+    rgb = [l,l,l]
+    if s != 0:
+        chroma = 1 - np.abs(2*l-1)
+        hp = h/60.
+        x = chroma*(1 - np.abs(hp%2 - 1))
+        m = l - chroma/2.
+        if 0 <= hp < 1:
+            rgb = [chroma+m, x+m, m]
+        elif 1 < hp < 2:
+            rgb = [x+m, chroma+m, m]
+        elif 2 < hp < 3:
+            rgb = [m, chroma+m, x+m]
+        elif 3 < hp < 4:
+            rgb = [m, x+m, chroma+m]
+        elif 4 < hp < 5:
+            rgb = [x+m, m, chroma+m]
+        elif 5 < hp < 6:
+            rgb = [chroma+m, m, x+m]
+        else:
+            raise RuntimeError("{} is an invalid HSL color.".format((h,s,l)))
+    return rgb
 
-def rgb_to_html_string(r,g,b):
-    pass
-
-def gen_color_scheme(home_color=(193,67,28), n=10):
+def discrete_color_scheme(n=10,home_color=(193,60,35)):
     """
     Generate a color scheme based on n colors evenly space around the color wheel,
     in terms of angle. The home_color is the default starting point, which is
     cyan, in hsl notation. We can divide the 2(pi) radians by n to get the angle offset. 
     Then the angles are given by (start_angle) + (2*pi*i)/n as i varies from 0 to n-1. 
     """
-    pass
-
-# After this if we have a list of integers we wish to map to colors, just index them (already done if they're in a list!)
-# and assign the ith color to angle (start_angle) + (2*pi*i)/n, where n is the number of unique integers in the list. 
-
-# Finally, make this a matplotlib color scheme? Or just manually convert to html color name. 
+    angle_offset = 360./n
+    home_angle, sat, lum = home_color
+    angles = [(home_angle+i*angle_offset)%360 for i in range(n)]
+    hsls = [(ang,sat/100.,lum/100.) for ang in angles]
+    rgbs = [_hsl_to_rgb(hsl) for hsl in hsls]
+    return rgbs
 
 if __name__ == '__main__':
-    colors = ['red', 'purple', 'blue', 'cyan', 'green', 'yellow']
-    test_scheme(colors)
+    colors = discrete_color_scheme(6)
+    _test_scheme(colors, savefn = None,show=True)
