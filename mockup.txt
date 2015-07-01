@@ -30,14 +30,16 @@
     matrix_vis.py
     -->heatmap
     -->3dplot
-    topicVis.py*
-    tratiFreqVis.py*
+    topicVis.py
+    traitFreqVis.py*
     activityVis.py*
   /util   
     dbutil.py*    
     randpat.py*
     parallelMap.py
     parallelMapInsert.py
+  /mockdb
+    mockdb.py
 
     
     

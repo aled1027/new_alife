@@ -7,6 +7,7 @@ gensim
 nltk
 scikitlearn
 tsne
+pyldavis
 
 
 
