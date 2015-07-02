@@ -67,6 +67,8 @@ def tfidf_weighted_avg(pno, w2v_model):
     This is poorly implemented in that it makes two database queries. Ugh. 
     """
     text = _db.pat_text.find_one({'_id': pno}).get('patText', '')
+    if text == '':
+        raise RuntimeError('doc has no text.')
     words = _tokenizer.tokenize(text)    
     stemmed_words = [stemmer(word) for word in words]
     bow = _db.patns.find_one({'pno': pno}).get('text')
