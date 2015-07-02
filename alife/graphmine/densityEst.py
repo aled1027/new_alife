@@ -5,16 +5,17 @@ import matplotlib.pyplot as plt
 import csv
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
-
+from alife.data import load_surface
 
 # global
+"""
 data_dir = '/Users/jacobmenick/Desktop/alife_refactor/alife/data/surfaces'
 freq_fn = '/'.join([data_dir, 'freq_surface.npy'])
 exist_fn = '/'.join([data_dir, 'exist_surface.npy'])
 prob_fn = '/'.join([data_dir, 'prob_surface.npy'])
-freq = np.load(freq_fn)
-exist = np.load(exist_fn)[:,:freq.shape[1]]
-
+"""
+_freq = load_surface('cite_frequency')
+_exist = load_surface('existence')
 
 """
 following tutorial_url: 
@@ -80,29 +81,7 @@ def plot_fitted(data, bins=100, dist_name='gamma', show=True,savefn=None):
         plt.show()
 
 def main():
-    prob = divide_matrices(freq,exist)
-    age_collapse = prob.sum(axis=1)
-    pcites_collapse = prob.sum(axis=0)
-    
-    
-
-#main
-"""
-data_dir = '/Users/jacobmenick/Downloads'
-freqsurface_fn = '/'.join([data_dir, 'frequency_surface.npy'])
-arr = np.load(freqsurface_fn)
-bigsub = arr[:1000,:100]
-#plot3d(bigsub,log=True)
-"""
-"""
-age = arr.sum(axis=1)
-pcites = arr.sum(axis=0)
-nsample = 30000
-y = np.random.choice(hist_to_full_arr(age), size=nsample)
-plot_fitted(y)
-"""
-
-"""
-y2 = np.random.choice(hist_to_full_arr(pcites), size=nsample)
-plot_fitted(y2)
-"""
+    prob = divide_matrices(_freq,_exist)
+    age_prob = prob.sum(axis=1)
+    pcites_prob = prob.sum(axis=0)
+    return age_prob, pcites_prob
