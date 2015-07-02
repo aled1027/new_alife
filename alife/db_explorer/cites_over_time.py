@@ -1,7 +1,9 @@
 # Compute the number of citations over time. 
 
 from alife.mockdb import get_mock
+from alife.util.general import save_dict
 from pymongo import MongoClient
+from collections import Counter
 import datetime
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
@@ -53,9 +55,17 @@ def test():
     return in_dates, out_dates
     
 def main():
+    ctr_indates = Counter()
+    ctr_outdats = Counter()
     db = MongoClient().patents
     in_dates = in_cites_over_time(db, limit = None)
     out_dates = out_cites_over_time(db, limit = None)
+    ctr_indates.update(in_dates)
+    ctr_outdates.update(out_dates)
+    incites_fn = 'incites_over_time_hist.p'
+    outcites_fn = 'outcites_over_time_hist.p'
+    save_dict(incites_fn, dict(ctr_indates))
+    save_dict(outcites_fn, dict(ctr_outdates))
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
     ax1.hist(in_dates)
     ax1.set_xlabel('Date')

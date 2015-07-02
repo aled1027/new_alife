@@ -2,6 +2,8 @@
 
 from pymongo import MongoClient
 from alife.mockdb import get_mock
+from alife.util.general import save_dict
+from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -52,7 +54,13 @@ def test():
 def main():
     db = MongoClient().patents
     in_degs = all_in_degrees(db, limit=None)
-    out_deg = all_out_degrees(db, limit=None)
+    out_degs = all_out_degrees(db, limit=None)
+    ctr_ins = Counter(in_degs)
+    ctr_outs = Counter(out_degs)
+    indeg_fn = 'in_degree_hist.p'
+    outdeg_fn = 'out_degree_hist.p'
+    save_dict(indeg_fn, dict(ctr_ins))
+    save_dict(outdeg_fn, dict(ctr_outs))
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
     ax1.hist(in_degs, bins=30)
     ax1.set_xlabel('In-Degree')
