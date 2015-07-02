@@ -27,7 +27,8 @@ def get_texts(patents, coll_name = 'pat_text', generator = False):
 
 
 def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], 
-                  enforce_func = lambda pat: len(pat.get('citedby', [])) > 75):
+                  enforce_func = lambda pat: len(pat.get('citedby', [])) > 75, 
+                  flatten = False):
     """
     Get all patents children of ancestor_pno, and children's children..., 
     and so on, with n_generations total generations of patents. 
@@ -50,7 +51,9 @@ def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'],
                         descendants.append(child_doc)
         if descendants is None:
             return lineage
-        lineage.append(descendants)
+        lineage.append(list(set(descendants))) # get the unique ones only
+    if flatten:
+        lineage = [pat for subnet in lineage for pat in subnet]
     return lineage
 
 def subnet_adj_dict(patents):
@@ -66,3 +69,6 @@ def subnet_adj_dict(patents):
             if citer_pno in pnos:
                 incites[citee_pno].append(int(citer_pno))
     return incites
+
+def test():
+    pass
