@@ -3,9 +3,11 @@ import numpy as np
 from collections import defaultdict
 from pymongo import MongoClient
 from gensim import models
+from gensim import matutils
 from sklearn.externals import joblib
 from alife.mockdb import get_mock
 from alife.txtmine import stemmer
+from alife.util import model_loader
 from alife.util.general import cosine_dist, euclidean_dist, save_dict
 from alife.txtmine.tokenizer import Tokenizer
 from alife.visualize.w2v_vis import embedding_fig
@@ -20,6 +22,9 @@ _friendly_patents = [('zeolites', 4061724), ('semiconductors', 4064521),
                         ('microarrays', 5143854), ('browser', 5572643)]
 _names,_pnos = zip(*_friendly_patents)
 
+def _dist(v1,v2):
+    return np.dot(matutils.unitvec(v1), matutils.unitvec(v2))
+
 def load_w2v(filename):
     #Loads a word2vec model stored at the given location.
     return models.word2vec.Word2Vec.load(filename)
@@ -28,7 +33,7 @@ def load_kmeans(filename):
     # Loads a kmeans model stored at the given location.
     return joblib.load(filename)
 
-def parse_clusters(kmeans, w2v, n_get = 50, n_try = 10, stemmeq=True):
+def parse_clusters(kmeans, w2v, n_get = 50, n_try = 20, stemmeq=True):
     """
     parses a kmeans model by returning the closest word vectors. 
     if stemmeq is True, then keep searching through the closest
@@ -76,16 +81,18 @@ def tfidf_weighted_avg(pno, w2v_model):
     assert(len(tfidfs) == len(words) == len(stemmed_words) == len(vecs) == len(weighted_vecs))
     return 1./len(words)*np.sum(weighted_vecs, axis=0)
 
-def distances_from(v1, other_vs, cosine =True):
+def distances_from(v1, other_vs):
     """
     Returns a list of distances from v1 to each vector in other_vs.
     If cosine is true, use the cosine distance rather than the 
     euclidean distance.     
     """
-    if cosine:
-        return [cosine_dist(v1,v2) for v2 in other_vs]
-    else:
-        return [euclidean_dist(v1,v2) for v2 in other_vs]
+    
+    return [_dist(v1,v2) for v2 in other_vs]
+#    if cosine:
+#        return [cosine_dist(v1,v2) for v2 in other_vs]
+#    else:
+#        return [euclidean_dist(v1,v2) for v2 in other_vs]
     
     
 def cluster_distances(pno, w2v_model, cluster_model, srtd = True):
@@ -117,13 +124,9 @@ def model_report(pnos, w2v_model, cluster_model, outdir, top_n=10):
     embedding_fig(w2v_model, cluster_model, savefn = tsne_fn, n=300)
 
 def test():
-    data_dir = '/Users/jmenick/Desktop/jmAlife/output/models/w2v_300vs_300nc'
-    w2v_fn = '/Users/jmenick/Desktop/jmAlife/output/models/w2v_300vs_200nc/w2v300.word2vec'
-    cluster_fn = '/'.join([data_dir, 'kmeans300'])
-    w2v = models.word2vec.Word2Vec.load(w2v_fn)
-    kmeans = joblib.load(cluster_fn)
-    model_report(_friendly_patents, w2v, kmeans, data_dir)
+    w2v,kmeans = model_loader(300,200)
+    dists = {name: cluster_distances(pno, w2v,kmeans)
+             for (name,pno) in _friendly_patents
+    }
+    return w2v, kmeans, dists, parse_clusters(kmeans, w2v)
 
-
-if __name__ == '__main__':
-    test()
