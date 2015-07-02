@@ -7,7 +7,7 @@ from tsne import bh_sne
 from gensim import models,corpora
 from alife.visualize.discrete_color import discrete_color_scheme 
 
-def embedding_fig(w2v_model, kmeans_model, n=500, embed_style = 'pca', savefn = None, show=False):
+def embedding_fig(w2v_model, kmeans_model, n=500, embed_style = 'tsne', savefn = None, show=False):
     """
     Save or show a matplotlib figure, displaying word embeddings colored
     according to cluster assignment. The parameter n gives the number of 
@@ -22,7 +22,7 @@ def embedding_fig(w2v_model, kmeans_model, n=500, embed_style = 'pca', savefn = 
     # map cluster assignment to integer.
     subset_clusters = np.array(map(lambda x: int(kmeans_model.predict(x)), subset_vecs))
     unique_clusters = set(subset_clusters)
-    print "number of unique clusters in top {} words: {}.".format(len(unique_clusters), n)
+    print "number of unique clusters in top {} words: {}.".format(n, len(unique_clusters))
     colormap = discrete_color_scheme(len(unique_clusters))
     int_to_color = {idx: colormap[i] for (i,idx) in enumerate(list(unique_clusters))}
     subset_colors = [int_to_color[i] for i in subset_clusters]
@@ -36,9 +36,9 @@ def embedding_fig(w2v_model, kmeans_model, n=500, embed_style = 'pca', savefn = 
     fig = plt.figure()
     fig.set_size_inches(50,28.4)
     ax = fig.add_subplot(111)
-    ax.scatter(embed_xs, embed_ys, color = subset_colors, s=500)
+    ax.scatter(embed_xs, embed_ys, color = subset_colors, s=100)
     for (x,y,word) in zip(embed_xs, embed_ys, subset_words):
-        ax.annotate(word, xy=(x,y), textcoords='offset points', fontsize=35)
+        ax.annotate(word, xy=(x,y), textcoords='offset points', fontsize=20)
     plt.title('{} 2d word embeddings'.format(embed_style))
     if savefn is not None:
         plt.savefig(savefn, dpi=120)
@@ -52,7 +52,7 @@ def test():
     w2v = models.word2vec.Word2Vec.load(wordvec_fn)
     kmeans = joblib.load(kmeans_fn)
     savefn = 'embed_plot_test_tsne.png'
-    embedding_fig(w2v, kmeans, embed_style='tsne', savefn=savefn, n=100)
+    embedding_fig(w2v, kmeans, embed_style='tsne', savefn=savefn, n=500)
 
 if __name__ == '__main__':
     test()

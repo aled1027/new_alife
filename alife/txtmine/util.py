@@ -1,10 +1,9 @@
 # Low level utilities for text mining. 
 import string
 import re
-from nltk.stem.snowball import SnowballStemmer
+from alife.txtmine import stemmer
 
 # Global variables
-STEMMER = SnowballStemmer('english')
 
 def is_num(inString):
     # Is the given string a number?
@@ -32,5 +31,5 @@ def rmv_elems_from_list(lst, elems):
 
 def stem_words_in_list(lst):
     # returns the list of words, with each word stemmed. 
-    return map(STEMMER.stem, lst)
+    return map(stemmer, lst)
 
