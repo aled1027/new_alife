@@ -4,7 +4,6 @@ from pymongo import MongoClient
 from alife import mockdb
 from alife.util.general import save_dict
 
-
 _db = MongoClient().patents
 
 def get_texts(patents, coll_name = 'pat_text', generator = False):
@@ -25,24 +24,23 @@ def get_texts(patents, coll_name = 'pat_text', generator = False):
     else:
         return list(texts)
 
-
 def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], 
                   enforce_func = lambda pat: len(pat.get('citedby', [])) > 75, 
-                  flatten = False):
+                  flatten = False, collection = _db.traits):
     """
     Get all patents children of ancestor_pno, and children's children..., 
     and so on, with n_generations total generations of patents. 
     Returns a list of lists of patent documents, where each inner list
     contains all patents in a given generation satisfying enforce_func. 
     """
-    ancestor_doc = _db.cite_net.find_one({'_id': ancestor_pno}, {field:1 for field in fields})
+    ancestor_doc = collection.find_one({'_id': ancestor_pno}, {field:1 for field in fields})
     lineage = [[ancestor_doc]]
     for i in range(1,n_generations):
         ancestors = [pat for pat in lineage[i-1]]
         descendants = []
         for a in ancestors:
             for child_pno in a['citedby']:
-                child_doc = _db.cite_net.find_one({'_id': int(child_pno)}, {field: 1 for field in fields})
+                child_doc = collection.find_one({'_id': int(child_pno)}, {field: 1 for field in fields})
                 if child_doc is None:
                     continue
                 else:
