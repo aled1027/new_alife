@@ -1,5 +1,6 @@
 # utilities for fitting and analysing word2vec-based trait models. 
 import numpy as np
+import sys
 from collections import defaultdict
 from pymongo import MongoClient
 from gensim import models
@@ -123,7 +124,7 @@ def model_report(pnos, w2v_model, cluster_model, outdir, top_n=10):
     tsne_fn = '/'.join([outdir, 'embedding_fig_tsne.png'])
     save_dict(cluster_parse_fn, parsed_clusters)
     save_dict(dist_fn, dists)
-    embedding_fig(w2v_model, cluster_model, savefn = tsne_fn, n=300)
+    embedding_fig(w2v_model, cluster_model, savefn = tsne_fn, n=150)
 
 def test():
     w2v,kmeans = model_loader(300,200)
@@ -131,4 +132,16 @@ def test():
              for (name,pno) in _friendly_patents
     }
     return w2v, kmeans, dists, parse_clusters(kmeans, w2v)
-
+    
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        exit("Usage: python {} <wordvec_size> <n_clusters> <out directory>".format(sys.argv[0]))
+    w2v_dim = int(sys.argv[1])
+    n_clusters = int(sys.argv[2])
+    outdir = sys.argv[3]
+    try:
+        w2v,kmeans = model_loader(w2v_dim, n_clusters)
+    except:
+        exit("Model with vector dimension {} and {} clusters not found.".format(w2v_dim, n_clusters))
+    model_report(_friendly_patents, w2v, kmeans, outdir)
+    
