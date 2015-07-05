@@ -4,6 +4,7 @@ from itertools import product
 from mockdb import get_mock
 from alife.util.dbutil import crawl_lineage
 from alife.txtmine.w2v import _dist as nrml_cos_sim
+from jmAlife.dbManage.parallelMap import partallelMap
 import logging
 
 _realdb = MongoClient().patents
@@ -20,7 +21,7 @@ def tfidf_dist(traits_a, traits_b):
     As these correspond to a dense binary trait vector, the set intersection
     of the two lists is equal to the hamming distance. 
     """
-    return len(list(set(traits_a)+set(traits_b)))
+    return 20 - 2*len(list(set(traits_a).intersection(set(traits_b))))
 
 def w2v_dist(traits_a, traits_b):
     """
@@ -100,11 +101,33 @@ def first_order_trait_distance(parent_pno, trait='w2v', db =_realdb):
             continue
         else:
             door_openingness += dist_func(parent[trait_field], child[trait_field])
-            n_childrin_with_traits += 1
+            n_children_with_traits += 1
     stats[sum_fieldname] = door_openingness
     # The average fotd is the total divided by the number of children (with traits)
+    if n_children_with_traits == 0:
+        stats[sum_fieldname] = -1
+        stats[avg_fieldname] = -1
+        return stats
     stats[avg_fieldname] = float(door_openingness)/n_children_with_traits 
     return stats
+
+def compute_tfidf_do():
+    def one_tfidf_do(doc):
+        return {'$set': first_order_trait_distance(doc['_id'], 'tf-idf')}
+    parallelMap(one_tfidf_do,
+                in_collection = DB.cite_net,
+                out_collection = DB.cite_net,
+                findArgs = {
+                    'spec': {
+                        'top_tf-idf': {'$exists': True},
+                        'citedby': {'$exists': True}
+                         },
+                    'fields':{
+                        'top_tf-idf': 1, 'citedby':1, '_id': 1
+                    }
+                },
+                updateFreq = 500,
+                bSize = 1000)
 
 def test():
     p = _mockdb.traits.find().next()
