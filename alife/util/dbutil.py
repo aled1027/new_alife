@@ -34,12 +34,14 @@ def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'],
     contains all patents in a given generation satisfying enforce_func. 
     """
     ancestor_doc = collection.find_one({'_id': ancestor_pno}, {field:1 for field in fields})
+    if ancestor_doc is None:
+        return None
     lineage = [[ancestor_doc]]
     for i in range(1,n_generations):
         ancestors = [pat for pat in lineage[i-1]]
         descendants = []
         for a in ancestors:
-            for child_pno in a.get('citedby', None):
+            for child_pno in a.get('citedby', []):
                 child_doc = collection.find_one({'_id': int(child_pno)}, {field: 1 for field in fields})
                 if child_doc is None:
                     continue

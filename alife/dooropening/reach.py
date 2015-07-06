@@ -50,8 +50,11 @@ def trait_variance(ancestor_pno, trait='w2v', db = _realdb, n_gens = 2):
     var_field_name = str(n_gens)+'_gen_trait_variance_' + trait
     trait_field, _ = _trait_info[trait]
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
-    lineage = crawl_lineage(ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True,
-                            enforce_func = lambda x: True)
+    lineage = crawl_lineage(ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = lambda x: True)
+    if lineage is None: 
+        stats[sum_fieldname] = -1
+        stats[avg_fieldname] = -1
+        return stats
     traits = [doc.get(trait_field, None) for doc in lineage]
     traits = np.array([t for t in traits if t is not None], dtype=np.float64)
     stats[mean_field_name] = list(np.mean(traits, axis=0))
@@ -64,8 +67,11 @@ def parent_child_trait_distance(ancestor_pno, trait='w2v', db=_realdb, n_gens = 
     avg_fieldname = '_'.join([str(n_gens), 'gen_avg_dist', trait])
     trait_field,dist_func = _trait_info[trait]
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
-    lineage = crawl_lineage(ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True,
-                            enforce_func = lambda x: True)[1:]
+    lineage = crawl_lineage(ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = lambda x: True)[1:]
+    if lineage is None:
+        stats[sum_fieldname] = -1
+        stats[avg_fieldname] = -1
+        return stats
     if not (parent.get('citedby', None) and parent.get(trait_field, None)):
         stats[sum_fieldname] = 0
         stats[avg_fieldname] = 0
