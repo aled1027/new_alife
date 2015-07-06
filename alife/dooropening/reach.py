@@ -82,7 +82,7 @@ def parent_child_trait_distance(ancestor_pno, trait='w2v', db=_realdb, n_gens = 
     stats[avg_fieldname] = dist_sum/n_children_with_traits
     return stats
 
-def compute_reach(trait='w2v', n_gens=1):
+def compute_reach(trait='w2v', n_gens=2):
     trait_field, _ = _trait_info[trait]
     def one_reach(doc):
         return {'$set': parent_child_trait_distance(doc['_id'], n_gens=n_gens, trait=trait)}
@@ -98,7 +98,7 @@ def compute_reach(trait='w2v', n_gens=1):
         bSize = 1000
     )
 
-def compute_w2v_trait_variance(trait='w2v', n_gens=1):
+def compute_w2v_trait_variance(trait='w2v', n_gens=2):
     trait_field, _ = _trait_info[trait]
     def one_trait_var(doc):
         return {'$set': trait_variance(doc['_id'], n_gens=n_gens, trait = trait)}
@@ -116,7 +116,7 @@ def compute_w2v_trait_variance(trait='w2v', n_gens=1):
     
 
 def main():
-    compute_reach()
+    compute_reach(n_gens=2)
 
 if __name__ == '__main__':
     main()

@@ -39,7 +39,7 @@ def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'],
         ancestors = [pat for pat in lineage[i-1]]
         descendants = []
         for a in ancestors:
-            for child_pno in a['citedby']:
+            for child_pno in a.get('citedby', None):
                 child_doc = collection.find_one({'_id': int(child_pno)}, {field: 1 for field in fields})
                 if child_doc is None:
                     continue
