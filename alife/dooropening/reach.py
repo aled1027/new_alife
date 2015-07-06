@@ -104,7 +104,7 @@ def compute_reach(trait='w2v', n_gens=2):
         bSize = 1000
     )
 
-def compute_w2v_trait_variance(trait='w2v', n_gens=2):
+def compute_trait_variance(trait='w2v', n_gens=2):
     trait_field, _ = _trait_info[trait]
     def one_trait_var(doc):
         return {'$set': trait_variance(doc['_id'], n_gens=n_gens, trait = trait)}
@@ -119,7 +119,6 @@ def compute_w2v_trait_variance(trait='w2v', n_gens=2):
         updateFreq=500,
         bSize = 1000
     )
-    
 
 def main():
     compute_reach(n_gens=2)
