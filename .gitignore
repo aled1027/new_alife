@@ -1,4 +1,6 @@
 *pyc
 *npy
+*log
+nohup.out
 figures
 output
