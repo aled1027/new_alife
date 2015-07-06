@@ -45,11 +45,11 @@ def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'],
                     continue
                 else:
                     # begin jm clooj. 
-                    if enforce_func(child_doc):
+                    if enforce_func(child_doc) and not any(d['_id']==child_doc['_id'] for d in descendants):
                         descendants.append(child_doc)
         if descendants is None:
             return lineage
-        lineage.append(list(set(descendants))) # get the unique ones only
+        lineage.append(descendants)
     if flatten:
         lineage = [pat for subnet in lineage for pat in subnet]
     return lineage
