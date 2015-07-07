@@ -3,6 +3,7 @@ from collections import defaultdict
 from pymongo import MongoClient
 from alife import mockdb
 from alife.util.general import save_dict
+import numpy as np
 
 _db = MongoClient().patents
 
@@ -23,6 +24,27 @@ def get_texts(patents, coll_name = 'pat_text', generator = False):
         return texts
     else:
         return list(texts)
+
+def get_fields_unordered(collection, field_names=None, null_values=None, limit = None):
+    """
+    Returns an nd-array, one for each element of the collection,
+    or limited to a certain number of rows. The columns are the fields.
+    If we don't have a field instead return the specified null value. 
+    """
+    projection = {}
+    if not null_values:
+        null_values = [None for _ in field_names]
+    if field_names:
+        projection = {field:1 for field in field_names}
+    if limit:
+        data = collection.find({},projection).limit(limit)
+    else:
+        data = collection.find({},projection)
+    outarr = []
+    for pat in data:
+        row = [pat.get(field, nil) for field,nil in zip(field_names, null_values)]
+        outarr.append(row)
+    return np.array(outarr).transpose()
 
 def crawl_lineage(ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], 
                   enforce_func = lambda pat: len(pat.get('citedby', [])) > 75, 
