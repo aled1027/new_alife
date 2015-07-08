@@ -16,12 +16,11 @@ import numpy as np
 
 _db = MongoClient().patents
 
+"""
 def get_texts(patents, coll_name = 'pat_text', generator = False):
-    """
-    Access the text field from an iterable of patent documents.
-    The iterale can be a database cursor, a mock database cursor, 
-    a list, a generator, etc, so long as hit holds dictionaries. 
-    """
+   #    Access the text field from an iterable of patent documents.
+#    The iterale can be a database cursor, a mock database cursor, 
+#    a list, a generator, etc, so long as hit holds dictionaries. 
     require(coll_name in ['pat_text, patns'])
     if coll_name == 'pat_text':
         texts = (pat['patText'] for pat in patents)
@@ -33,6 +32,7 @@ def get_texts(patents, coll_name = 'pat_text', generator = False):
         return texts
     else:
         return list(texts)
+"""
 
 def get_fields_unordered(collection, field_names=None, null_values=None, limit = None):
     """

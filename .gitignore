@@ -1,6 +1,8 @@
 *pyc
 *npy
 *log
+*csv
+*png
 nohup.out
 figures
 output

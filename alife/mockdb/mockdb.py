@@ -10,6 +10,7 @@ db_dumps = {
     'just_cites': '/'.join([data_dir, 'mock_just_cites.p']),
     'pat_text': '/'.join([data_dir, 'mock_pat_text.p']),
     'corpusDict': '/'.join([data_dir, 'mock_corpusDict.p']),
+    'traits': '/'.join([data_dir, 'mock_traits.p'])
 }
 
 def get_mock(coll_names=db_dumps.keys()):
