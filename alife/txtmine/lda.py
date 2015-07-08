@@ -130,12 +130,12 @@ class MyLda:
                 writer.writerow(['pno', 'top 10 topics'])
                 for pno,dts in zip(pnos, doc_tops):
                     writer.writerow([pno]+dts)
-        visualize_fn = outdir+'/vis'+self.name+'.png'
+        visualize_fn = outdir+'/vis'+self.name+'.html'
         self.visualize(visualize_fn)
 
 def tstr():
     db = get_mock()
-    n_test = 10
+    n_test = 1000
     K=5
     fields = ['_id', 'patText']
     nulls = [None, '']
