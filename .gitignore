@@ -3,6 +3,8 @@
 *log
 *csv
 *png
+*.svmlight
+*.index
 nohup.out
 figures
 output
