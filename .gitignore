@@ -5,6 +5,7 @@
 *png
 *.svmlight
 *.index
+*html
 nohup.out
 figures
 output
