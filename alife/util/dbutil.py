@@ -55,7 +55,7 @@ def get_fields_unordered(collection, field_names=None, null_values=None, limit =
 
 def crawl_lineage(db, ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], 
                   enforce_func = lambda pat: len(pat.get('citedby', [])) > 75, 
-                  flatten = False)
+                  flatten = False):
     """
     Get all patents children of ancestor_pno, and children's children..., 
     and so on, with n_generations total generations of patents. 
@@ -95,7 +95,7 @@ def subnet_adj_dict(patents):
     for patent in patents:
         citee_pno = patent['_id']
         for citer_pno in patent.get('citedby', None):
-            if citer_pno in pnos:
+            if citer_pno in pnos and citer_pno not in incites[citee_pno]:
                 incites[citee_pno].append(int(citer_pno))
     return incites
 

@@ -50,7 +50,7 @@ def trait_variance(ancestor_pno, db, trait='w2v', n_gens = 2, enforce_func = lam
     var_field_name = str(n_gens)+'_gen_trait_variance_' + trait
     trait_field, _ = _trait_info[trait]
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
-    lineage = crawl_lineage(ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = enforce_func)
+    lineage = crawl_lineage(db, ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = enforce_func)
     if lineage is None: 
         stats[mean_field_name] = -1
         stats[var_field_name] = -1
@@ -83,7 +83,7 @@ def parent_child_trait_distance(ancestor_pno, db, trait='w2v', n_gens = 2, enfor
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
     if parent is None:
         return None # We don't have that ancestor. 
-    lineage = crawl_lineage(ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = enforce_func)[1:]
+    lineage = crawl_lineage(db, ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = enforce_func)[1:]
     if lineage is None:
         stats[sum_fieldname] = -1
         stats[avg_fieldname] = -1
