@@ -6,7 +6,7 @@
 *.svmlight
 *.index
 *.p
-*.html
+*html
 test_output
 nohup.out
 figures
