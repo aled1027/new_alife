@@ -8,7 +8,8 @@ _this_dir = os.path.dirname(os.path.realpath(__file__))
 
 class TestLda(unittest.TestCase):
     def setUp(self):
-        self.pat_coll = get_mock().pat_text
+        self.db = get_mock()
+        self.pat_coll = self.db.pat_text
         self.K = 5
         self.n_docs = 50
         data_dir = '/'.join([_this_dir, 'data'])
@@ -71,6 +72,19 @@ class TestLda(unittest.TestCase):
     def testExport(self):
         self.model.fit(self.texts)
         self.model.export(self.out_dir, topic_docs = (self.pnos, self.texts))
-        # assert that certain files exist, have certain length, etc...
+        # TODO: assert that certain files exist, have certain length, etc...
+
+    def testFullPipeline(self):
+        lda.full_pipeline(self.db, self.K, self.out_dir, self.n_docs, 'fulltst')
+
+    def testPipelineWithProvidedCorpus(self):
+        vocab = lda.load_vocab(self.stored_vocab_fn)
+        corpus = lda.load_corpus(self.stored_corpus_fn)
+        lda.pipeline_with_provided_corpus(
+            self.db, self.K, self.out_dir, 
+            self.stored_vocab_fn, self.stored_corpus_fn,
+            self.n_docs
+        )
+        
 
     

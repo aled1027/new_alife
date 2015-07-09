@@ -14,7 +14,7 @@ _sentinel_date = datetime.datetime(year=1970,month=1,day=1)
 def in_cites_over_time(db, limit=100):
     """
     Returns a list of dates, one for each time a citation of a patent 
-    on that date. 
+    issued on that date occurs. 
     """
     if limit is not None:
         cites = db.just_cites.find().limit(limit)
@@ -25,7 +25,6 @@ def in_cites_over_time(db, limit=100):
             [cite.get('cited_date', _sentinel_date) for cite in cites]
         )
     )
-    
 
 def out_cites_over_time(db, limit=100):
     """
@@ -57,7 +56,7 @@ def test():
     
 def main():
     ctr_indates = Counter()
-    ctr_outdats = Counter()
+    ctr_outdates = Counter()
     db = MongoClient().patents
     in_dates = in_cites_over_time(db, limit = None)
     out_dates = out_cites_over_time(db, limit = None)
@@ -77,3 +76,5 @@ def main():
     ax2.set_title('Out-Degrees over Time.')
     plt.savefig('cites_over_time.png')
     
+if __name__ == '__main__':
+    main()

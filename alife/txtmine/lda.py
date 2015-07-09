@@ -7,10 +7,31 @@ from pyLDAvis.gensim import prepare
 from alife.util.dbutil import get_fields_unordered
 from alife.mockdb import get_mock
 from alife.txtmine.tokenizer import Tokenizer
+from pymongo import MongoClient
 import pyLDAvis
 
+def load_vocab(fn):
+    """Loads a gensim Dictionary from disk."""
+    return corpora.Dictionary.load(fn)
+
+def load_corpus(fn):
+    """ Load a gensim serialized corpus from disk."""
+    return corpora.svmlightcorpus.SvmLightCorpus(fn)
+
+def load_lda(fn):
+    """ Loads a gensim LdaModel from disk."""
+    return ldamodel.LdaModel.load(fn, mmap='r')
+
 class MyLda:
+    """
+    Wrapper around gensim LDA model with utilities for
+    saving/loading/preprocessing text and corpus objects,
+    parsing output, and exporting model summary to disk.
+    """
     def __init__(self, n_topics, name=''):
+        """
+        Initializes a model without training.
+        """
         self.K = n_topics
         assert(type(name) == str)
         if name == '':
@@ -25,13 +46,13 @@ class MyLda:
         
     def load_vocab(self, fn):
         """loads a gensim vocab.dict object from disk."""
-        vocab = corpora.Dictionary.load(fn)
+        vocab = load_vocab(fn)
         self.vocab = vocab
         self.has_vocab = True
 
     def load_corpus(self, fn):
         """loads a gensim SvmLightCorpus object from disk."""
-        corpus = corpora.svmlightcorpus.SvmLightCorpus(fn)
+        corpus = load_corpus(fn)
         self.corpus = corpus
         self.has_corpus = True
 
@@ -91,14 +112,17 @@ class MyLda:
     def save(self, outdir, just_lda=True):
         """ save all files"""
         if not just_lda:
-            vocabfn = '/'.join([outdir, 'vocab_' + name + '.dict'])
-            corpusfn = '/'.join([outdir, 'corpus_' + name + '.svmlight'])
+            vocabfn = '/'.join([outdir, 'vocab_' + self.name + '.dict'])
+            corpusfn = '/'.join([outdir, 'corpus_' + self.name + '.svmlight'])
             self.vocab.save(vocabfn)
             corpora.SvmLightCorpus.serialize(corpusfn, self.corpus)
-        ldafn = '/'.join([outdir, 'lda_' + name])
-        self.lda.save(ldafn)
+        ldafn = '/'.join([outdir, 'lda_' + self.name])
+        self._lda_model.save(ldafn)
 
     def visualize(self, outfn):
+        """
+        Produce a pyLDAvis visualization of a model and save to disk at the given location.
+        """
         if self.has_viz_data:
             pyLDAvis.save_html(self.vis_data, outfn)
             return
@@ -133,18 +157,7 @@ class MyLda:
         visualize_fn = outdir+'/vis'+self.name+'.html'
         self.visualize(visualize_fn)
 
-def tstr():
-    db = get_mock()
-    n_test = 1000
-    K=5
-    fields = ['_id', 'patText']
-    nulls = [None, '']
-    pnos, texts = get_fields_unordered(db.pat_text, fields, nulls, n_test)
-    lda = MyLda(K, 'tester')
-    lda.fit(texts)
-    return pnos,texts,lda
-
-def full_pipeline(db, n_topics, out_dir, limit=100, name = None):
+def full_pipeline(db, n_topics, out_dir, limit=100, name = ''):
     print "Getting texts..."
     fields = ['_id', 'patText']
     nulls = [None, '']
@@ -152,16 +165,16 @@ def full_pipeline(db, n_topics, out_dir, limit=100, name = None):
         db.pat_text,
         fields, nulls, limit
     )
-    ldamodel = MyLda(K,name)
+    ldamodel = MyLda(n_topics,name)
     print "Fitting model..."
     ldamodel.fit(texts)
     print "Saving model..."
-    ldamodel.save(outdir)
+    ldamodel.save(out_dir)
     print "exporting summary stats..."
-    ldamodel.export(outdir)
+    ldamodel.export(out_dir)
     
 def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn, 
-                                  limit=100):
+                                  limit=100, name=''):
     print "Getting texts..."
     fields = ['_id', 'patText']
     nulls = [None, '']
@@ -169,14 +182,30 @@ def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn,
         db.pat_text,
         fields, nulls, limit
     )
-    ldamodel = MyLda(K,name)
+    ldamodel = MyLda(n_topics,name)
     print "loading corpus and vocabulary..."
     ldamodel.load_vocab(vocabfn)
     ldamodel.load_corpus(corpusfn)
     print "Fitting model..."
     ldamodel.fit(from_loaded=True)
     print "Saving model..."
-    ldamodel.save(outdir)
+    ldamodel.save(out_dir)
     print "exporting summary stats..."
-    ldamodel.export(outdir)
+    ldamodel.export(out_dir)
     pass
+
+if __name__ == '__main':
+    if len(sys.argv) == 3:
+        n_topics = int(sys.argv[1])
+        out_dir = sys.argv[2]
+        db = MongoClient().patents
+        full_pipeline(db, n_topics, out_dir, limit=None)
+    elif len(sys.argv) == 5:
+        n_topics = int(sys.argv[1])
+        out_dir = sys.argv[2]
+        vocabfn = sys.argv[3]
+        corpusfn = sys.argv[4]
+        db = MongoClient().patents
+        pipeline_with_provided_corpus(db, n_topics, out_dir, limit=None)
+    else:
+        exit("Usage: python {} <num_topics> <path to output_directory> <(optional) path to stored vocabulary> <(optional) path to stored corpus>")

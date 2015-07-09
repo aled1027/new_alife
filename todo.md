@@ -1,20 +1,18 @@
 ## TODO
 
-0. \* Produce digests for all of the word2vec models. 
-1. For all code, delete global MongoClient() calls. Instead, have functions which access the db take a db input. 
-..* Should default to the mockdb. 
-2. Write tests for util/db_util.py
-3. Write tests for pipeline
-4. Port txtMine modules, refactoring and splitting the model fitting/analysis code by model.
-5. Write tests for the txtMine code. 
-6. Port txtMine scripts, write tests for them. 
-7. \*. Run last two lda scripts on markov.
-8. Run around making sure all functions have docstrings. 
-9. Refactor/port all dbManage scripts into /pipeline, aggregating together the modules and scripts, where each module has a main method which runs the script for everyone in question. 
-10. Test and extensively document the pipeline code, building in robust logging. 
+1.  Mongomock is used only for unittests. That is, we can't test multithreaded code like parallelMap operations due to python's GIL.
+2.  Set up mongomock so that it has a good sample of documents from reach collection. For instance, the code for testing dooropening
+    needs documents that actually have traits and children.
+3. For all code, delete global MongoClient() calls. Instead, have functions which access the db take a db input. This way we can unittest everything with mockdb.
+   We should only access the real db in __main__ methods.
+4. Port RandPat into dbutil.
+5. Port ParallelMap, ParallelMapInsert, ParallelMapUpsert into dbutil.
+6. Port the full word2vec pipeline
+7. Write integration tests for the pipeline. Mockdb not useful here because of parallelMap. We need to have a test db for this.
+8. Extensively document the pipeline code. 
+9. Make sure all functions (within reason) have docstrings.
+10. Make sure all modules have documentation (at the very least a readme) and examples.
 
-
-\* denotes a script to run, not code to write. 
 
 
 
