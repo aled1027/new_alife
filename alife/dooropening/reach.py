@@ -178,7 +178,7 @@ def test():
     print "Done testing."
 
 def main(db, family=None):
-    compute_trait_variance(trait='w2v', n_gens=5, db=db, family=family)
+    compute_reach(trait='w2v', n_gens=5, db=db, family=family)
 
 if __name__ == '__main__':
     realdb = MongoClient().patents

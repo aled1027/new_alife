@@ -1,0 +1,1 @@
+There will be some example scripts in this folder for real use cases for using this library to answer questions of patent data. 
