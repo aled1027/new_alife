@@ -7,6 +7,8 @@ from pymongo import MongoClient
 from collections import Counter
 import datetime
 import matplotlib.pyplot as plt
+from matplotlib import ticker
+from matplotlib.dates import date2num, num2date
 
 _sentinel_date = datetime.datetime(year=1970,month=1,day=1)
 
@@ -50,13 +52,14 @@ def main():
     save_dict('outctr.p', dict(outctr))
     in_dates, in_cites = zip(*inctr.items())
     out_dates, out_cites = zip(*outctr.items())
+    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate).strftime('%Y-%m')))
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
     f.set_size_inches(18.5, 10.5)
-    ax1.hist(in_dates, weights=in_cites, bins=100)
+    ax1.hist(map(date2num, in_dates), weights=in_cites, bins=100)
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Count')
     ax1.set_title('In-degrees over Time.')
-    ax2.hist(out_dates, weights=out_cites, bins=100)
+    ax2.hist(map(date2num, out_dates), weights=out_cites, bins=100)
     ax2.set_xlabel('Date')
     ax2.set_ylabel('Count')
     ax2.set_title('Out-Degrees over Time.')
