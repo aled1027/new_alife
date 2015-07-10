@@ -22,13 +22,14 @@ def load_lda(fn):
     """ Loads a gensim LdaModel from disk."""
     return ldamodel.LdaModel.load(fn, mmap='r')
 
-class MyLda:
+class MyLda(object):
     """
     Wrapper around gensim LDA model with utilities for
     saving/loading/preprocessing text and corpus objects,
     parsing output, and exporting model summary to disk.
     """
     def __init__(self, n_topics, name=''):
+        super(MyLda, self).__init__()
         """
         Initializes a model without training.
         """
@@ -192,13 +193,14 @@ def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn,
     ldamodel.save(out_dir)
     print "exporting summary stats..."
     ldamodel.export(out_dir)
-    pass
+    return
 
-if __name__ == '__main':
+if __name__ == '__main__':
     if len(sys.argv) == 3:
         n_topics = int(sys.argv[1])
         out_dir = sys.argv[2]
         db = MongoClient().patents
+        print "running pipeline..."
         full_pipeline(db, n_topics, out_dir, limit=None)
     elif len(sys.argv) == 5:
         n_topics = int(sys.argv[1])
