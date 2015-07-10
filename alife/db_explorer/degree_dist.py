@@ -42,7 +42,7 @@ def main():
     ax2.set_xlabel('Out-Degree')
     ax2.set_ylabel('Count')
     plt.suptitle('Degree Distributions')
-    plt.savefig('degree_distributions_test.png')
+    plt.savefig('degree_distributions.png')
 
 if __name__ == '__main__':
     main()
