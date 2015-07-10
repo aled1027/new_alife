@@ -46,15 +46,19 @@ def test():
 def main():
     db = MongoClient().patents
     inctr, outctr = cites_over_time(db,limit=None)
+    save_dict('inctr.p', dict(inctr))
+    save_dict('outctr.p', dict(outctr))
     in_dates, in_cites = zip(*inctr.items())
     out_dates, out_cites = zip(*outctr.items())
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
     f.set_size_inches(18.5, 10.5)
-    ax1.scatter(in_dates, in_cites)
+    ax1.hist(in_dates, weights=in_cites, bins=100)
     ax1.set_xlabel('Date')
+    ax1.set_ylabel('Count')
     ax1.set_title('In-degrees over Time.')
-    ax2.scatter(out_dates, out_cites)
+    ax2.hist(out_dates, weights=out_cites, bins=100)
     ax2.set_xlabel('Date')
+    ax2.set_ylabel('Count')
     ax2.set_title('Out-Degrees over Time.')
     plt.savefig('cites_over_time.png')
     

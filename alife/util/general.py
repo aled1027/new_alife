@@ -18,6 +18,7 @@ def save_dict(filename, dictionary):
     """
     Pickle and save a python dictionary at the given location on the filesystem.
     """
+    print("warning. save_dict is deprecated. now using pickle_obj.")
     with open(filename, 'wb') as outfile:
         cPickle.dump(dictionary, outfile)
 
@@ -25,6 +26,23 @@ def load_dict(filename):
     """
     Load a pickled python dictionary from the given location on the filesystem.
     """
+    print("warning. save_dict is deprecated. now using load_obj.")
+    with open(filename, 'rb') as infile:
+        return cPickle.load(infile)
+
+def pickle_obj(filename, obj):
+    """
+    Pickle and save a python dictionary at the given location on the filesystem.
+    """
+    print("warning. save_dict is deprecated. now using pickle_obj.")
+    with open(filename, 'wb') as outfile:
+        cPickle.dump(obj, outfile)
+
+def load_obj(filename):
+    """
+    Load a pickled python dictionary from the given location on the filesystem.
+    """
+    print("warning. save_dict is deprecated. now using load_obj.")
     with open(filename, 'rb') as infile:
         return cPickle.load(infile)
 
