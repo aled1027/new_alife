@@ -1,7 +1,7 @@
 # Compute the number of citations over time. 
 
 from alife.mockdb import get_mock
-from alife.util.general import save_dict
+from alife.util.general import save_dict, load_obj
 from alife.util.dbutil import get_fields_unordered
 from pymongo import MongoClient
 from collections import Counter
@@ -52,14 +52,15 @@ def main():
     save_dict('outctr.p', dict(outctr))
     in_dates, in_cites = zip(*inctr.items())
     out_dates, out_cites = zip(*outctr.items())
-    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate).strftime('%Y-%m')))
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
     f.set_size_inches(18.5, 10.5)
-    ax1.hist(map(date2num, in_dates), weights=in_cites, bins=100)
+    ax1.xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate).strftime('%Y-%m')))
+    ax1.hist(map(date2num, in_dates), weights=in_cites, bins=150)
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Count')
     ax1.set_title('In-degrees over Time.')
-    ax2.hist(map(date2num, out_dates), weights=out_cites, bins=100)
+    ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate).strftime('%Y-%m')))
+    ax2.hist(map(date2num, out_dates), weights=out_cites, bins=150)
     ax2.set_xlabel('Date')
     ax2.set_ylabel('Count')
     ax2.set_title('Out-Degrees over Time.')
