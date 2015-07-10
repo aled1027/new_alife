@@ -57,7 +57,16 @@ def trait_variance(ancestor_pno, db, trait='w2v', n_gens = 2, enforce_func = lam
         return stats
     traits = [doc.get(trait_field, None) for doc in lineage]
     traits = np.array([t for t in traits if t is not None], dtype=np.float64)
-    stats[mean_field_name] = list(np.mean(traits, axis=0))
+    if len(traits) > 1:
+        stats[mean_field_name] = list(np.mean(traits, axis=0))
+    elif len(traits) == 1:
+        stats[mean_field_name] = traits
+    elif len(traits) == 0:
+        stats[mean_field_name] = -1
+        stats[var_field_name] = -1
+        return stats
+    else:
+        raise RuntimeError("Less than 0 traits???")
     stats[var_field_name] = np.linalg.norm(np.var(traits, axis=0)) # For now, get a real number by computing norm. 
     return stats
 

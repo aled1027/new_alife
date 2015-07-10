@@ -4,15 +4,17 @@ from alife.dooropening import reach
 
 # TODO - I need db.traits to have better coverage....
 class TestParentChildTraitDistance(unittest.TestCase):
-    self.db = get_mock()
-    self.n_test = 10
-    self.family_docs = self.db.traits.find().limit(self.n_test)
+    def setUp(self):
+        self.db = get_mock()
+        self.n_test = 10
+        self.family_docs = self.db.traits.find().limit(self.n_test)
 
 class TestReachComputation(unittest.TestCase):
-    self.enforcer = lambda x: len(x.get('citedby', [])) > 100
-    self.db = get_mock()
-    self.n_test = 5
-    self.patent_family = self.db.traits.find().limit(self.n_test)
+    def setUp(self):
+        self.enforcer = lambda x: len(x.get('citedby', [])) > 100
+        self.db = get_mock()
+        self.n_test = 5
+        self.family_docs = self.db.traits.find().limit(self.n_test)
     
     def Test2GenReachTFIDF(self):
         reach.compute_reach(

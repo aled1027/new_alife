@@ -39,10 +39,9 @@ def get_fields_unordered(collection, field_names=None, null_values=None, limit =
     If we don't have a field instead return the specified null value. 
     """
     projection = {}
-    if not null_values:
+    if null_values is None:
         null_values = [None for _ in field_names]
-    if field_names:
-        projection = {field:1 for field in field_names}
+    projection = {field:1 for field in field_names}
     if limit:
         data = collection.find({},projection).limit(limit)
     else:
