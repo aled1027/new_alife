@@ -1,0 +1,1 @@
+A module for analyzing traits. Include the Generalized Price Equation, Trait sharing analysis, and utilities for analyzing trait activity over time.
