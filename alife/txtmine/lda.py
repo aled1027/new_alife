@@ -69,7 +69,7 @@ class MyLda(object):
             self.corpus = list(self.corpus)
         self.has_corpus = True
 
-    def parse_topics(self, n=5):
+    def parse_topics(self, n=10):
         """
         Parses the model's topics into lists of top words, in decreasing
         sorted order of probability under that topic. 
@@ -77,12 +77,22 @@ class MyLda(object):
         assert(self.is_trained)
         raw_topics = self._lda_model.print_topics(self._lda_model.num_topics)
         topics = map(lambda x: x.split(' + '), raw_topics)
-        return [
+        top_words = [
             map(
                 lambda x: x.split('*')[1], 
                 topic[:n]
             ) 
             for topic in topics]
+        self.topics = top_words
+        self.has_topics = True
+        return top_words
+
+    def describe_topic(self, index):
+        """ Spits out a description of the the topic. """
+        assert(self.has_topics)
+        assert(0 <= index < self.K)
+        return self.topics[index]
+        
 
     def fit(self, texts = None, from_loaded = False):
         """fits a model from an iterable of strings (full, unparsed docs). """
@@ -98,6 +108,7 @@ class MyLda(object):
 
         )
         self.is_trained = True
+        _ = self.parse_topics()
 
     def doc_topics(self, docs):
         """
