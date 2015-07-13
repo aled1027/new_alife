@@ -22,13 +22,14 @@ def load_lda(fn):
     """ Loads a gensim LdaModel from disk."""
     return ldamodel.LdaModel.load(fn, mmap='r')
 
-class MyLda:
+class MyLda(object):
     """
     Wrapper around gensim LDA model with utilities for
     saving/loading/preprocessing text and corpus objects,
     parsing output, and exporting model summary to disk.
     """
     def __init__(self, n_topics, name=''):
+        super(MyLda, self).__init__()
         """
         Initializes a model without training.
         """
@@ -68,7 +69,7 @@ class MyLda:
             self.corpus = list(self.corpus)
         self.has_corpus = True
 
-    def parse_topics(self, n=5):
+    def parse_topics(self, n=10):
         """
         Parses the model's topics into lists of top words, in decreasing
         sorted order of probability under that topic. 
@@ -76,12 +77,22 @@ class MyLda:
         assert(self.is_trained)
         raw_topics = self._lda_model.print_topics(self._lda_model.num_topics)
         topics = map(lambda x: x.split(' + '), raw_topics)
-        return [
+        top_words = [
             map(
                 lambda x: x.split('*')[1], 
                 topic[:n]
             ) 
             for topic in topics]
+        self.topics = top_words
+        self.has_topics = True
+        return top_words
+
+    def describe_topic(self, index):
+        """ Spits out a description of the the topic. """
+        assert(self.has_topics)
+        assert(0 <= index < self.K)
+        return self.topics[index]
+        
 
     def fit(self, texts = None, from_loaded = False):
         """fits a model from an iterable of strings (full, unparsed docs). """
@@ -97,6 +108,7 @@ class MyLda:
 
         )
         self.is_trained = True
+        _ = self.parse_topics()
 
     def doc_topics(self, docs):
         """
@@ -192,13 +204,14 @@ def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn,
     ldamodel.save(out_dir)
     print "exporting summary stats..."
     ldamodel.export(out_dir)
-    pass
+    return
 
-if __name__ == '__main':
+if __name__ == '__main__':
     if len(sys.argv) == 3:
         n_topics = int(sys.argv[1])
         out_dir = sys.argv[2]
         db = MongoClient().patents
+        print "running pipeline..."
         full_pipeline(db, n_topics, out_dir, limit=None)
     elif len(sys.argv) == 5:
         n_topics = int(sys.argv[1])

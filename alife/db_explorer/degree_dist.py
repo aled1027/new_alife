@@ -2,71 +2,49 @@
 
 from pymongo import MongoClient
 from alife.mockdb import get_mock
-from alife.util.general import save_dict
+from alife.util.general import pickle_obj, load_obj
+from alife.util.dbutil import get_fields_unordered as get_fields
 from collections import Counter
-import numpy as np
 import matplotlib.pyplot as plt
 
-def _mylen(x):
-    """
-    Return the length of x if you can. Otherwise return -1. This is because
-    0 length is meaningful for our purposes, and we wish to have a different error value. 
-    """
-    try:
-        return len(x)
-    except:
-        return -1
-
-def all_in_degrees(db, limit = 100):
-    """
-    Returns a numpy array of in-degrees for each patent.
-    """
-    if limit is not None:
-        pats = db.cite_net.find().limit(limit)
-    else:
-        pats = db.cite_net.find()
-    in_degrees = np.array([_mylen(pat.get('citedby', None)) for pat in pats])
-    return in_degrees
-
-def all_out_degrees(db, limit):
-    """
-    Returns a numpy array of out-degrees for each patent.
-    """
-    if limit is not None:
-        pats = db.cite_net.find().limit(limit)
-    else:
-        pats = db.cite_net.find()
-    out_degrees = np.array([_mylen(pat.get('rawcites', None)) for pat in pats])
-    return out_degrees
+def in_and_out_counts(db, limit=None):
+    inctr, outctr = Counter(), Counter()
+    incites, outcites = get_fields(db.cite_net, ['citedby', 'rawcites'], [[],[]], limit)
+    inctr.update(map(len, incites))
+    outctr.update(map(len, outcites))
+    return inctr, outctr
     
 def test():
     db = get_mock()
-    n = 750
-    in_degs, out_degs = all_in_degrees(db, n), all_out_degrees(db, n)
+    in_deg_counts, out_deg_counts = in_and_out_counts(db, 100)
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
-    ax1.hist(in_degs, bins=30)
+    f.set_size_inches(18.5, 10.5)
+    ax1.hist(in_deg_counts.keys(), weights=in_deg_counts.values(), bins=20)
     ax1.set_xlabel('In-Degree')
-    ax2.hist(out_degs, bins=30)
+    ax1.set_ylabel('Count')
+    ax2.hist(out_deg_counts.keys(), weights=out_deg_counts.values(), bins=20)
     ax2.set_xlabel('Out-Degree')
+    ax2.set_ylabel('Count')
     plt.suptitle('Degree Distributions')
-    return in_degs, out_degs
+    plt.savefig('degree_distributions_test.png')
 
 def main():
     db = MongoClient().patents
-    in_degs = all_in_degrees(db, limit=None)
-    out_degs = all_out_degrees(db, limit=None)
-    ctr_ins = Counter(in_degs)
-    ctr_outs = Counter(out_degs)
-    indeg_fn = 'in_degree_hist.p'
-    outdeg_fn = 'out_degree_hist.p'
-    save_dict(indeg_fn, dict(ctr_ins))
-    save_dict(outdeg_fn, dict(ctr_outs))
+    in_deg_counts, out_deg_counts = in_and_out_counts(db, None)
+    pickle_obj('in_deg_counts.p', dict(in_deg_counts))
+    pickle_obj('out_deg_counts.p', dict(out_deg_counts))
     f,(ax1, ax2) = plt.subplots(1,2,sharey=True)
-    ax1.hist(in_degs, bins=30)
+    f.set_size_inches(18.5, 10.5)
+    ax1.hist(in_deg_counts.keys(), weights=in_deg_counts.values(), bins=100)
     ax1.set_xlabel('In-Degree')
-    ax2.hist(out_degs, bins=30)
+    ax1.set_ylabel('Count')
+    ax2.hist(out_deg_counts.keys(), weights=out_deg_counts.values(), bins=100)
     ax2.set_xlabel('Out-Degree')
+    ax2.set_ylabel('Count')
     plt.suptitle('Degree Distributions')
     plt.savefig('degree_distributions.png')
+
+if __name__ == '__main__':
+    main()
     
 

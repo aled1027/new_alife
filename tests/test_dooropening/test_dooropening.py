@@ -28,6 +28,15 @@ class TestReachComputation(unittest.TestCase):
             enforce_func = self.enforcer
         )
 
+    """
+    # NOT READY YET
+    def Test2GenReachLDA(self):
+        reach.compute_reach(
+            trait='lda', db = self.db, n_gens = 2, family = self.family_docs,
+            enforce_func = self.enforcer
+        )
+    """
+
     def Test5GenReachTFIDF(self):
         reach.compute_reach(
             trait='tf-idf', db = self.db, n_gens = 5, family = self.family_docs,
@@ -40,12 +49,48 @@ class TestReachComputation(unittest.TestCase):
             enforce_func = self.enforcer
         )
 
-    def Test2GenW2vVariance(self):
+    """
+    # NOT READY YET
+    def Test5GenReachLDA(self):
+        reach.compute_reach(
+            trait='lda', db = self.db, n_gens = 5, family = self.family_docs,
+            enforce_func = self.enforcer
+        )
+    """
+
+    def Test2GenTraitVarianceTFIDF(self):
+        reach.compute_trait_variance(trait='tf-idf', n_gens = 2, db=self.db, 
+                                     family = self.family_docs)
+
+
+    def Test2GenTraitVarianceW2V(self):
         reach.compute_trait_variance(trait='w2v', n_gens = 2, db=self.db, 
                                      family = self.family_docs)
+
+    """
+    # Not ready yet.
+    def Test2GenTraitVarianceLDA(self):
+        reach.compute_trait_variance(trait='lda', n_gens = 2, db=self.db, 
+                                     family = self.family_docs)
+    """
+
+    # Not ready yet.
+    def Test5GenTraitVarianceTFIDF(self):
+        reach.compute_trait_variance(trait='tf-idf', n_gens = 5, db=self.db, 
+                                     family = self.family_docs)
+
     
-    def Test5GenW2vVariance(self):
+    def Test5GenTraitVarianceW2V(self):
         reach.compute_trait_variance(trait='w2v', n_gens = 5, db=self.db, 
                                      family = self.family_docs)
+
+    """
+    # Not ready yet.
+    def Test5GenTraitVarianceLDA(self):
+        reach.compute_trait_variance(trait='lda', n_gens = 5, db=self.db, 
+                                     family = self.family_docs)
+    """
+
+
 
         

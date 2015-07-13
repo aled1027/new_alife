@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import csv
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
-from alife.data import load_surface
+from alife.data import load_file
 
 # global
 """
@@ -14,8 +14,8 @@ freq_fn = '/'.join([data_dir, 'freq_surface.npy'])
 exist_fn = '/'.join([data_dir, 'exist_surface.npy'])
 prob_fn = '/'.join([data_dir, 'prob_surface.npy'])
 """
-_freq = load_surface('cite_frequency')
-_exist = load_surface('existence')
+_freq = load_file('frequency_surface')
+_exist = load_file('existence_surface')
 
 """
 following tutorial_url: 
