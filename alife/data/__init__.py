@@ -7,6 +7,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 file_locs = {
     'frequency_surface': (np.load, '/'.join([this_dir, 'surfaces/freq_surface.npy'])),
     'existence_surface': (np.load, '/'.join([this_dir, 'surfaces/exist_surface.npy'])),
+    'probability_surface': (np.load, '/'.join([this_dir, 'surfaces/prob_surface.npy'])),
     'stem2id': (load_obj, '/'.join([this_dir, 'vocab/stem2id.p']))
 }
 
