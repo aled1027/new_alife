@@ -27,8 +27,9 @@ def dooropen_hist_w2v_2gen(show=False, savefn=None):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     fig.set_size_inches(18.5,10.5)
     ax1.hist(sums,bins=100)
+    ax1.set_yscale('log', nonposy='clip')
     ax1.set_xlabel('Total Distance')
-    ax1.set_ylabel('Count')
+    ax1.set_ylabel('Log Count')
     ax1.set_title('Total Parent-Descendant Distance')
 
     ax2.hist(avgs,bins=100)
@@ -73,9 +74,9 @@ def sorted_dooropen_fields():
     return sorted_avgs, sorted_sums, sorted_vars
 
 if __name__ == '__main__':
-    sorted_avgs, sorted_sums, sorted_vars = sorted_dooropen_fields()
-#    savefn ='dooropen_hist_w2v_2gen.png'
-#    if len(sys.argv) == 2:
-#        savefn = sys.argv[1]
-#    main(show=False, savefn=savefn)
+#    sorted_avgs, sorted_sums, sorted_vars = sorted_dooropen_fields()
+    savefn ='dooropen_hist_w2v_2gen.png'
+    if len(sys.argv) == 2:
+        savefn = sys.argv[1]
+    dooropen_hist_w2v_2gen(show=True, savefn=None)
 
