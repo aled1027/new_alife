@@ -4,7 +4,7 @@ import csv
 from gensim.models import ldamodel
 from gensim import corpora
 from pyLDAvis.gensim import prepare
-from alife.util.dbutil import get_fields_unordered
+from alife.util.dbutil import get_fields_unordered, get_field_generator
 from alife.mockdb import get_mock
 from alife.txtmine.tokenizer import Tokenizer
 from pymongo import MongoClient
@@ -171,13 +171,20 @@ class MyLda(object):
 
 def full_pipeline(db, n_topics, out_dir, limit=100, name = ''):
     print "Getting texts..."
-    fields = ['_id', 'patText']
-    nulls = [None, '']
-    pnos,texts = get_fields_unordered(
+#    fields = ['patText']
+#    nulls = [None]
+#    texts = get_fields_unordered(
+#        db.pat_text,
+#        fields, nulls, limit
+#    )
+    texts = list(get_field_generator(
         db.pat_text,
-        fields, nulls, limit
-    )
+        'patText', 
+        None
+    ))
+    print "Initializing Model..."
     ldamodel = MyLda(n_topics,name)
+    texts = [t for t in texts if t is not None]
     print "Fitting model..."
     ldamodel.fit(texts)
     print "Saving model..."
@@ -188,9 +195,9 @@ def full_pipeline(db, n_topics, out_dir, limit=100, name = ''):
 def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn, 
                                   limit=100, name=''):
     print "Getting texts..."
-    fields = ['_id', 'patText']
-    nulls = [None, '']
-    pnos,texts = get_fields_unordered(
+    fields = ['patText']
+    nulls = ['']
+    texts = get_fields_unordered(
         db.pat_text,
         fields, nulls, limit
     )
