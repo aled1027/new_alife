@@ -1,6 +1,7 @@
 # utilities for running LDA on our patent database. 
 import sys
 import csv
+import logging
 from gensim.models import ldamodel
 from gensim import corpora
 from pyLDAvis.gensim import prepare
@@ -214,6 +215,9 @@ def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn,
     return
 
 if __name__ == '__main__':
+    # set logging up
+
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     if len(sys.argv) == 3:
         n_topics = int(sys.argv[1])
         out_dir = sys.argv[2]
