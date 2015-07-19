@@ -107,7 +107,7 @@ def subnet_adj_dict(patents):
     incites = {pno: [] for pno in pnos}
     for patent in patents:
         citee_pno = patent['_id']
-        for citer_pno in patent.get('citedby', None):
+        for citer_pno in patent.get('citedby', []):
             if citer_pno in pnos and citer_pno not in incites[citee_pno]:
                 incites[citee_pno].append(int(citer_pno))
     return incites

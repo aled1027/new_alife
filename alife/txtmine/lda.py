@@ -216,7 +216,6 @@ def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn,
 
 if __name__ == '__main__':
     # set logging up
-
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     if len(sys.argv) == 3:
         n_topics = int(sys.argv[1])
