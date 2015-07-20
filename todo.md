@@ -6,6 +6,8 @@
 3. For all code, delete global MongoClient() calls. Instead, have functions which access the db take a db input. This way we can unittest everything with mockdb.
    We should only access the real db in __main__ methods.
 4. Port RandPat into dbutil.
+   --> It seems to implement this, we'll need to add a random integer field to every record. But...how to grab N records efficiently when N may be large?
+   --> Can we derive integers from the _id fields? Pro: index already built, definitely unique. Cons: ? 
 5. Port ParallelMap, ParallelMapInsert, ParallelMapUpsert into dbutil.
 6. Port the full word2vec pipeline
 7. Write integration tests for the pipeline. Mockdb not useful here because of parallelMap. We need to have a test db for this.
