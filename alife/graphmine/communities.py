@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from alife.util.dbutil import crawl_lineage, subnet_adj_dict
 from alife.mockdb import get_mock
 from alife.util.general import pickle_obj
-from alife.visualize.patent_vis import network_plot
+from alife.visualize.network_vis import network_plot
 from community import detect, visualize, util
 
 def community_colors(db, pno, threshold, show_vis = False, savefn=None):
@@ -30,16 +30,20 @@ def community_colors(db, pno, threshold, show_vis = False, savefn=None):
     # make the visualization.
     G = visualize.get_graph(adj)
     G.graph['ancestor'] = pno
+    ancestor_idx = G.nodes().index(G.graph['ancestor'])
     node_colors = [colors[community_lookup[node]] for node in G.nodes()]
     node_colors[G.nodes().index(G.graph['ancestor'])] = colors[n_communities]
+    default_node_size = 60
+    node_sizes = [default_node_size for node in G.nodes()]
+    node_sizes[ancestor_idx] = 6*default_node_size
     f = plt.figure()
     f.set_size_inches(18.5, 10.5)
     if savefn is not None or show_vis:
         nx.draw_networkx(
             G, 
             nx.spring_layout(G, iterations=20000), 
-            cmap=plt.get_cmap('jet'), node_color=node_colors, 
-            node_size=65,
+            node_color=node_colors, 
+            node_size = node_sizes,
             with_labels = False,
             fontsize=1,
 #            font_weight = 'bold',
@@ -58,7 +62,7 @@ def get_and_save_community_colors(db, pnos, thresholds=None):
     if thresholds is None:
         thresholds = [0 for _ in pnos]
     for pno,threshold in zip(pnos,thresholds):
-        viz_fn = 'viz_'+str(pno)+'.png'
+        viz_fn = 'viz_'+str(pno)+'.pdf'
         lookup_fn = 'lookup_'+str(pno)+'.p'
         color_lookup = community_colors(db, pno, threshold, show_vis=False, savefn=viz_fn)
         community_colors_list.append(color_lookup)
