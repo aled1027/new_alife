@@ -59,7 +59,7 @@ def test():
     adj = subnet_adj_dict(lineage)
     bubblejet_color_dict_fn = '/Users/jmenick/Desktop/sandbox/jacobs_pca_dicts/bubblejet_pca_dict.p'
     bubblejet_colors = load_obj(bubblejet_color_dict_fn)
-    savefn = '{}_force_pca_test.png'.format(pno)
+    savefn = '{}_force_pca_test.pdf'.format(pno)
     print "making plot..."
     network_plot(pno, adj, bubblejet_colors, True, savefn)
     return adj, bubblejet_colors
@@ -95,7 +95,7 @@ def test2():
         adj = subnet_adj_dict(lineage)
         dict_fn = '/Users/jmenick/Desktop/sandbox/jacobs_pca_dicts/{}_pca_dict.p'.format(name)
         colordict = load_obj(dict_fn)
-        savefn = '{}_{}_force_pca_test.png'.format(pno, name)
+        savefn = '{}_{}_force_pca_test.pdf'.format(pno, name)
         print "getting plot..."
         network_plot(pno, adj, colordict, False, savefn)
         print "done with {}".format(name)
@@ -128,7 +128,7 @@ def main():
         adj = subnet_adj_dict(lineage)
         dict_fn = '/Users/jmenick/Desktop/sandbox/jacobs_pca_dicts/{}_pca_dict.p'.format(name)
         colordict = load_obj(dict_fn)
-        savefn = '{}_{}_force_pca_test.png'.format(pno, name)
+        savefn = '{}_{}_force_pca_test.pdf'.format(pno, name)
         network_plot(pno, adj, colordict, False, savefn)
         print "done with {}".format(name)
     
