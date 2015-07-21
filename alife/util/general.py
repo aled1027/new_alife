@@ -1,6 +1,7 @@
 # General utility functions. 
 
 from itertools import islice
+from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date. 
 import cPickle
 import numpy as np
 
@@ -61,3 +62,11 @@ def normalize(vector):
     Normalize a vector so that its components sum to 1. 
     """
     return vector/np.linalg.norm(vector)
+
+def objid_to_int(objid):
+    return int(str(objid), 16)
+
+def int_to_objid(x):
+    return ObjectId(hex(x).rstrip("L").lstrip("0x") or "0")
+
+

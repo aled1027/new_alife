@@ -18,23 +18,25 @@ def trait_variance(ancestor_pno, db, trait='w2v', n_gens = 2, enforce_func = lam
     if trait == 'lda':
         raise RuntimeError('Trait variance not currently supported for {}'.format(trait))
     stats = {}
-    mean_field_name = str(n_gens)+'_gen_trait_mean_' + trait
+#    mean_field_name = str(n_gens)+'_gen_trait_mean_' + trait # JM comment out 7/10
     var_field_name = str(n_gens)+'_gen_trait_variance_' + trait
     trait_field, _, densify_func = _trait_info[trait]
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
     lineage = crawl_lineage(db, ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = enforce_func)
     if lineage is None: 
-        stats[mean_field_name] = -1
+#        stats[mean_field_name] = -1 # JM Comment out 7/10
         stats[var_field_name] = -1
         return stats
     traits = [doc.get(trait_field, None) for doc in lineage]
     traits = np.array([densify_func(t) for t in traits if t is not None], dtype=np.float64)
     if len(traits) > 1:
-        stats[mean_field_name] = list(np.mean(traits, axis=0))
+        pass
+#        stats[mean_field_name] = list(np.mean(traits, axis=0)) # JM comment out 7/10
     elif len(traits) == 1:
-        stats[mean_field_name] = traits
+        pass
+#        stats[mean_field_name] = traits # JM comment out 7/10
     elif len(traits) == 0:
-        stats[mean_field_name] = -1
+#        stats[mean_field_name] = -1 # JM comment out 7/10
         stats[var_field_name] = -1
         return stats
     else:

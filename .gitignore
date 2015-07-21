@@ -1,5 +1,4 @@
 *pyc
-*npy
 *log
 *csv
 *png
@@ -10,3 +9,4 @@ test_output
 nohup.out
 figures
 output
+.DS_STORE

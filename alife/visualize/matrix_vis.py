@@ -17,6 +17,7 @@ def plot3d(matrix, show=True, savefn=None, plt_type='bar',
     ax = fig.add_subplot(111, projection='3d')
     x_data,y_data = np.meshgrid(np.arange(matrix.shape[1]), 
                                 np.arange(matrix.shape[0]))
+    
     x_data = x_data.flatten()
     y_data = y_data.flatten()
     z_data = matrix.flatten()
