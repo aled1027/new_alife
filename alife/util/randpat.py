@@ -26,7 +26,7 @@ class PatentSampler(object):
         return self._keymap[indices]
 
     def sample(self, n, replace=False, fields=None):
-        ids = self._rand_ids(n, replace)
+        ids = list(self._rand_ids(n, replace))
         if self._id_type == ObjectId:
             ids = map(int_to_objid, ids)
         if fields is not None:
