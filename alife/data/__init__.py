@@ -23,8 +23,9 @@ def load_file(name):
 
 def load_keymap(collection_name):
     """ Loads a map from integer to _id field for the given collection. """
-    fn = this_dir+'/sampler_maps/'+coll_name+'_id_map.npy'
-    try:
-        return np.load(fn, mmap='r')
-    except:
-        raise RuntimeError("Collection {} not supported".format(collection_name))
+    fn = '/'.join([this_dir, 'sampler_maps', collection_name+'_id_map.npy'])
+    return np.load(fn)
+#    try:
+#        return np.load(fn, mmap='r')
+#    except:
+#        raise RuntimeError("Collection {} not located at {}".format(collection_name, fn))
