@@ -61,18 +61,22 @@ def parse_clusters(kmeans, w2v, n_get = 50, n_try = 20, stemmeq=True):
             parsed[i] = terms
     return parsed
 
-def tfidf_weighted_avg(pno, w2v_model):
+def tfidf_weighted_avg(pno, w2v_model, db):
     """
     computes the tfidf-weighted average representation of a doc 
     in a given word2vec model.
     This is poorly implemented in that it makes two database queries. Ugh. 
     """
-    text = _db.pat_text.find_one({'_id': pno}).get('patText', '')
+    text = db.pat_text.find_one({'_id': pno}).get('patText', '')
     if text == '':
         raise RuntimeError('doc has no text.')
     words = _tokenizer.tokenize(text)    
     stemmed_words = [stemmer(word) for word in words]
-    bow = _db.patns.find_one({'pno': pno}).get('text')
+    try:
+        bow = db.patns.find_one({'pno': pno}).get('text', {})
+    except: 
+        raise RuntimeError("No patent {} in {}".format(pno, db.patns))
+#    print bow
     tfidfs = [bow.get(stem,{}).get('tf-idf',0) for stem in stemmed_words]
     def getvec(word,model):
         try:
@@ -98,26 +102,26 @@ def distances_from(v1, other_vs):
 #        return [euclidean_dist(v1,v2) for v2 in other_vs]
     
     
-def cluster_distances(pno, w2v_model, cluster_model, srtd = True):
+def cluster_distances(db, pno, w2v_model, cluster_model, srtd = True):
     """
     Returns a list of distances between the vector representing the
     patent with the given number in the w2v_model and each of the 
     cluster centers in the cluster_model. 
     """
-    vec_representation = tfidf_weighted_avg(pno, w2v_model)
+    vec_representation = tfidf_weighted_avg(pno, w2v_model, db)
     dists =  distances_from(vec_representation, cluster_model.cluster_centers_)
     if srtd:
         return sorted(enumerate(dists), key = lambda x: x[1], reverse=True)
     else:
         return dists
 
-def model_report(pnos, w2v_model, cluster_model, outdir, top_n=10):
+def model_report(db, pnos, w2v_model, cluster_model, outdir, top_n=10):
     """
     Summarize the trait assigned to the document by the models. 
     Do so by returning the parse for the top_n clusters by strength
     """
     parsed_clusters = parse_clusters(cluster_model, w2v_model)
-    dists = {name: cluster_distances(pno, w2v_model, cluster_model)
+    dists = {name: cluster_distances(db, pno, w2v_model, cluster_model)
              for name,pno in pnos}
     cluster_parse_fn = '/'.join([outdir, 'parsed_clusters.p'])
     dist_fn = '/'.join([outdir, 'patent_dists.p'])
@@ -127,8 +131,9 @@ def model_report(pnos, w2v_model, cluster_model, outdir, top_n=10):
     embedding_fig(w2v_model, cluster_model, savefn = tsne_fn, n=150)
 
 def test():
+    db = MongoClient().patents
     w2v,kmeans = model_loader(300,200)
-    dists = {name: cluster_distances(pno, w2v,kmeans)
+    dists = {name: cluster_distances(db, pno, w2v,kmeans)
              for (name,pno) in _friendly_patents
     }
     return w2v, kmeans, dists, parse_clusters(kmeans, w2v)
@@ -136,6 +141,7 @@ def test():
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         exit("Usage: python {} <wordvec_size> <n_clusters> <out directory>".format(sys.argv[0]))
+    db = MongoClient().patents
     w2v_dim = int(sys.argv[1])
     n_clusters = int(sys.argv[2])
     outdir = sys.argv[3]
@@ -143,5 +149,5 @@ if __name__ == '__main__':
         w2v,kmeans = model_loader(w2v_dim, n_clusters)
     except:
         exit("Model with vector dimension {} and {} clusters not found.".format(w2v_dim, n_clusters))
-    model_report(_friendly_patents, w2v, kmeans, outdir)
+    model_report(db, _friendly_patents, w2v, kmeans, outdir)
     
