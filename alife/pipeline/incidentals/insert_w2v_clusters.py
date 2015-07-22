@@ -1,11 +1,10 @@
+# Inserts a field for every document containing their cluster strengths (in decreasing order of similarity). 
+
 from pymongo import MongoClient
-from alife.mockdb import get_mock
 from alife.util import model_loader
 from alife.txtmine.w2v import cluster_distances
 from jmAlife.dbManage.parallelMap import parallelMap
 from pprint import pprint
-
-# DO NOT RUN. This is computing all the cluster distances as zero. Debug tomorrow. 
 
 def test(n_docs = 100):
     db = MongoClient().patents
