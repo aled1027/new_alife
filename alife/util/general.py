@@ -4,6 +4,8 @@ from itertools import islice
 from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date. 
 import cPickle
 import numpy as np
+import time
+import numpy as np
 
 def take(n, iterable):
     """
@@ -69,4 +71,18 @@ def objid_to_int(objid):
 def int_to_objid(x):
     return ObjectId(hex(x).rstrip("L").lstrip("0x") or "0")
 
+# TODO - These timer utilities should be decorators. 
+def timeFunc(f):
+    start = time.time()
+    f()
+    end = time.time()
+    return (end-start)*1000
 
+def timer(f,n=10):
+    times = [timeFunc(f) for _ in range(n)]
+    mn = np.min(times)
+    mx = np.max(times)
+    avg = np.mean(times)
+    print "function: {}, min: {}, max: {}, average: {}".format(
+        f.__name__, mn,mx,avg
+    )

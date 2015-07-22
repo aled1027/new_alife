@@ -1,5 +1,6 @@
 from alife.data import load_file
 from alife.txtmine.w2v import _dist as nrml_cos_sim
+import numpy as np
 
 _stem2id = load_file('stem2id')
 
@@ -8,8 +9,29 @@ def densify_tfidf(top_tfidf):
     n_stems = len(_stem2id)
     dense_vec = [0 for _ in range(n_stems)]
     for stem in top_tfidf:
-        dense_vec[word2id[stem]] = 1
+        dense_vec[_stem2id[stem]] = 1
     return np.array(dense_vec)
+
+def has_stem_bin(doc, stem):
+    stems = doc.get('top_tf-idf', [])
+    if stem in stems:
+        return 1
+    else:
+        return 0
+
+def has_topic_bin(doc, topic_idx):
+    topics = doc.get('lda_topics', [])
+    if topic_idx in topics:
+        return 1
+    else:
+        return 0
+
+def has_cluster_bin(doc, cluster_idx):
+    clusters = doc.get('wordvec_clusters', [])
+    if cluster_idx in clusters:
+        return 1
+    else:
+        return 0
 
 def densify_lda(topic_strengths, K=200, normalize=True):
     """
@@ -66,7 +88,7 @@ def lda_dist(traits_a, traits_b):
     return 1 - nrml_cos_sim(traits_a, traits_b)
 
 _trait_info = {
-        'tf-idf': ('top_tf-idf', tfidf_dist, densify_tfidf),
-        'w2v': ('doc_vec', w2v_dist, lambda x: x),
-        'lda': ('lda_topics', lda_dist, densify_lda)
+        'tf-idf': ('top_tf-idf', tfidf_dist, densify_tfidf, has_stem_bin),
+        'w2v': ('doc_vec', w2v_dist, lambda x: x, has_cluster_bin),
+        'lda': ('lda_topics', lda_dist, densify_lda, has_topic_bin)
 }

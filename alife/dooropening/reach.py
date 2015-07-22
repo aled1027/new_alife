@@ -20,7 +20,7 @@ def trait_variance(ancestor_pno, db, trait='w2v', n_gens = 2, enforce_func = lam
     stats = {}
 #    mean_field_name = str(n_gens)+'_gen_trait_mean_' + trait # JM comment out 7/10
     var_field_name = str(n_gens)+'_gen_trait_variance_' + trait
-    trait_field, _, densify_func = _trait_info[trait]
+    trait_field, _, densify_func, _ = _trait_info[trait]
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
     lineage = crawl_lineage(db, ancestor_pno, n_gens, fields = ['_id', 'citedby', trait_field], flatten=True, enforce_func = enforce_func)
     if lineage is None: 
@@ -64,7 +64,7 @@ def parent_child_trait_distance(ancestor_pno, db, trait='w2v', n_gens = 2, enfor
     stats = {}
     sum_fieldname = '_'.join([str(n_gens), 'gen_sum_dist', trait])
     avg_fieldname = '_'.join([str(n_gens), 'gen_avg_dist', trait])
-    trait_field,dist_func, _ = _trait_info[trait]
+    trait_field,dist_func, _, _ = _trait_info[trait]
     parent = db.traits.find_one({'_id': ancestor_pno}, {'_id': 1, 'citedby': 1, trait_field:1})
     if parent is None:
         return None # We don't have that ancestor. 
@@ -90,7 +90,7 @@ def parent_child_trait_distance(ancestor_pno, db, trait='w2v', n_gens = 2, enfor
     return stats
 
 def compute_reach(db, trait='w2v', n_gens=2, family=None, enforce_func = lambda x: True):
-    trait_field, _, _ = _trait_info[trait]
+    trait_field, _, _, _ = _trait_info[trait]
     def one_reach(doc):
         return {'$set': parent_child_trait_distance(doc['_id'], n_gens=n_gens, trait=trait, db=db, enforce_func = enforce_func)}
     if family is not None:
@@ -111,7 +111,7 @@ def compute_reach(db, trait='w2v', n_gens=2, family=None, enforce_func = lambda 
         )
 
 def compute_trait_variance(db, trait='w2v', n_gens=2, family=None, enforce_func = lambda x: True):
-    trait_field, _, _ = _trait_info[trait]
+    trait_field, _,_,_ = _trait_info[trait]
     def one_trait_var(doc):
         return {'$set': trait_variance(doc['_id'], n_gens=n_gens, trait = trait, db=db, enforce_func = enforce_func)}
     if family is not None:
