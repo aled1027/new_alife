@@ -122,7 +122,7 @@ class MyLda(object):
         bows = [self.vocab.doc2bow(tkns) for tkns in tknzd]
         return [self._lda_model[bow] for bow in bows]
 
-    def save(self, outdir, just_lda=True):
+    def save(self, outdir, just_lda=False):
         """ save all files"""
         if not just_lda:
             vocabfn = '/'.join([outdir, 'vocab_' + self.name + '.dict'])
@@ -189,7 +189,7 @@ def full_pipeline(db, n_topics, out_dir, limit=100, name = ''):
     print "Fitting model..."
     ldamodel.fit(texts)
     print "Saving model..."
-    ldamodel.save(out_dir)
+    ldamodel.save(out_dir, just_lda = False)
     print "exporting summary stats..."
     ldamodel.export(out_dir)
     

@@ -1,11 +1,14 @@
+A sketch of the directory structure of the eventual complete package. 
+* - denotes that the code has not been completed/ported
+
 /alife
   /parser
-    datParser.py
-    xmlParser.py
-  /simulate
+    datParser.py*
+    xmlParser.py*
+  /simulate*
     flat.py*
     agecites.py*
-  /neutralJS
+  /neutralJS*
     That whole project*
   /txtmine
     /stoplists
@@ -13,19 +16,18 @@
     tokenize.py
     lda.py
     word2vec.py
-    docRepresent.py*
     /scripts
   /graphmine
     util.py
-    densityEst.py*
-  /pipeline
+    densityEst.py
+  /pipeline*
   /traits
-    traitshare.py*
-    price.py*
+    traitshare.py
+    price.py
     heritability.py*
     traitFreq.py*
   /dooropening
-    dooropening.py*
+    dooropening.py
   /visualize
     matrix_vis.py
     -->heatmap
@@ -34,10 +36,10 @@
     traitFreqVis.py*
     activityVis.py*
   /util   
-    dbutil.py*    
-    randpat.py*
-    parallelMap.py
-    parallelMapInsert.py
+    dbutil.py    
+    randpat.py
+    parallelMap.py*
+    parallelMapInsert.py*
   /mockdb
     mockdb.py
 
