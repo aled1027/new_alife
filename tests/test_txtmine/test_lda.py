@@ -32,7 +32,7 @@ class TestLda(unittest.TestCase):
         self.assertEqual(self.n_docs, len(list(self.model.corpus)))
 
     def testFitsGivenData(self):
-        self.model.fit(self.texts)
+        self.model.fit(self.pnos, self.texts)
         self.assertTrue(self.model.is_trained)
 
     def testLoadsVocab(self):
@@ -48,29 +48,29 @@ class TestLda(unittest.TestCase):
     def testFitsLoadedData(self):
         self.model.load_vocab(self.stored_vocab_fn)
         self.model.load_corpus(self.stored_corpus_fn)
-        self.model.fit(from_loaded = True)
+        self.model.fit(pnos=None, from_loaded = True)
         self.assertTrue(self.model.is_trained)
 
     def testParseTopics(self):
-        self.model.fit(self.texts)
+        self.model.fit(self.pnos, self.texts)
         topics = self.model.parse_topics()
         print topics
         self.assertEqual(len(topics), self.K)
         
     def testDocTopics(self):
-        self.model.fit(self.texts)
+        self.model.fit(self.pnos, self.texts)
         doc_topics = self.model.doc_topics(self.texts)
         for p,t in zip(self.pnos, doc_topics):
             print p,t
         self.assertEqual(len(doc_topics),self.n_docs)
         
     def testVisualize(self):
-        self.model.fit(self.texts)
+        self.model.fit(self.pnos, self.texts)
         self.model.visualize(self.visualize_fn)
         pass
 
     def testExport(self):
-        self.model.fit(self.texts)
+        self.model.fit(self.pnos, self.texts)
         self.model.export(self.out_dir, topic_docs = (self.pnos, self.texts))
         # TODO: assert that certain files exist, have certain length, etc...
 

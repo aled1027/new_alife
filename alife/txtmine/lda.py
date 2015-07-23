@@ -5,7 +5,8 @@ import logging
 from gensim.models import ldamodel
 from gensim import corpora
 from pyLDAvis.gensim import prepare
-from alife.util.dbutil import get_fields_unordered, get_field_generator
+from alife.util.general import pickle_obj
+from alife.util.dbutil import get_fields_unordered, get_field_generator, get_field_generators
 from alife.mockdb import get_mock
 from alife.txtmine.tokenizer import Tokenizer
 from pymongo import MongoClient
@@ -95,8 +96,9 @@ class MyLda(object):
         return self.topics[index]
         
 
-    def fit(self, texts = None, from_loaded = False):
+    def fit(self, pnos, texts = None, from_loaded = False):
         """fits a model from an iterable of strings (full, unparsed docs). """
+        self.pnos = pnos
         assert((texts is not None) or from_loaded)
         if texts is not None:
             self._process_texts(texts)
@@ -125,11 +127,14 @@ class MyLda(object):
     def save(self, outdir, just_lda=False):
         """ save all files"""
         if not just_lda:
+            pnofn = '/'.join([outdir, 'pnos.p'])
             vocabfn = '/'.join([outdir, 'vocab_' + self.name + '.dict'])
             corpusfn = '/'.join([outdir, 'corpus_' + self.name + '.svmlight'])
+            if self.pnos is not None:
+                pickle_obj(pnofn, self.pnos)
             self.vocab.save(vocabfn)
             corpora.SvmLightCorpus.serialize(corpusfn, self.corpus)
-        ldafn = '/'.join([outdir, 'lda_' + self.name])
+        ldafn = '/'.join([outdir,self.name+'.lda'])
         self._lda_model.save(ldafn)
 
     def visualize(self, outfn):
@@ -141,6 +146,7 @@ class MyLda(object):
             return
         assert(self.has_vocab and self.has_corpus)
         assert(self.is_trained)
+        # this might crash. I think because corpus, vocab, and _lda_model are all big. 
         self.vis_data = prepare(self._lda_model, self.corpus, self.vocab)
         self.has_viz_data = True
         pyLDAvis.save_html(self.vis_data, outfn)
@@ -172,46 +178,33 @@ class MyLda(object):
 
 def full_pipeline(db, n_topics, out_dir, limit=100, name = ''):
     print "Getting texts..."
-#    fields = ['patText']
-#    nulls = [None]
-#    texts = get_fields_unordered(
-#        db.pat_text,
-#        fields, nulls, limit
-#    )
-    texts = list(get_field_generator(
+    pnos,texts = zip(*list(get_field_generators(
         db.pat_text,
-        'patText', 
-        None
-    ))
+        ['_id', 'patText'], 
+        [None, '']
+    )))
     print "Initializing Model..."
-    ldamodel = MyLda(n_topics,name)
+    lda_model = MyLda(n_topics,name)
     texts = [t for t in texts if t is not None]
     print "Fitting model..."
-    ldamodel.fit(texts)
+    lda_model.fit(pnos, texts)
     print "Saving model..."
-    ldamodel.save(out_dir, just_lda = False)
+    lda_model.save(out_dir, just_lda = False)
     print "exporting summary stats..."
-    ldamodel.export(out_dir)
+    lda_model.export(out_dir)
     
 def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn, 
                                   limit=100, name=''):
-    print "Getting texts..."
-    fields = ['patText']
-    nulls = ['']
-    texts = get_fields_unordered(
-        db.pat_text,
-        fields, nulls, limit
-    )
-    ldamodel = MyLda(n_topics,name)
     print "loading corpus and vocabulary..."
-    ldamodel.load_vocab(vocabfn)
-    ldamodel.load_corpus(corpusfn)
+    lda_model = MyLda(n_topics,name)
+    lda_model.load_vocab(vocabfn)
+    lda_model.load_corpus(corpusfn)
     print "Fitting model..."
-    ldamodel.fit(from_loaded=True)
+    lda_model.fit(pnos=None,from_loaded=True)
     print "Saving model..."
-    ldamodel.save(out_dir)
+    lda_model.save(out_dir)
     print "exporting summary stats..."
-    ldamodel.export(out_dir)
+    lda_model.export(out_dir)
     return
 
 if __name__ == '__main__':
@@ -231,4 +224,4 @@ if __name__ == '__main__':
         db = MongoClient().patents
         pipeline_with_provided_corpus(db, n_topics, out_dir, limit=None)
     else:
-        exit("Usage: python {} <num_topics> <path to output_directory> <(optional) path to stored vocabulary> <(optional) path to stored corpus>")
+        exit("Usage: python {} <num_topics> <path to output_directory> <(optional) path to stored vocabulary> <(optional) path to stored corpus>".format(sys.argv[0]))
