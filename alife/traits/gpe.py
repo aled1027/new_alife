@@ -9,7 +9,7 @@ import numpy as np
 
 def step_through_time(start,end, delta=timedelta(days=7)):
     """ Returns a list of time pairs (start,end) which define 
-    endpoints of intervals of length delta (e.g. 1 week). """
+    endpoints of intervals of length delta (default 1 week). """
     i = 0
     times = []
     _current_time = start + delta
