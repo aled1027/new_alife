@@ -1,5 +1,5 @@
 # alife
-This repository contains the codebase of the current alife group. It is intended to be well-organized and well documented so that future members of the group can run, edit, and contribute new code. 
+This repository contains the codebase of the current alife group, organized as a python package. It is intended to be well-organized and well documented so that future members of the group can run, edit, and contribute new code, and so that others can reproduce our results. At the core of this codebase is a large, curated database, containing patent text and metadata (roughly 200GB). Where possible, we have attempted to abstract the code to be useful on arbitrary datasets, e.g. separating database access from algorithms. See ```/alife/traits/gpe.py``` for an example of this. 
 
-## history
-It contains refactored versions of code written primarily by Drew Blount (data-processing pipeline, tf-idf, the ever-present 'parallelMap' and its variants), and also Andy Buchanan (e.g, the parser). 
+### historical context
+The repository contains refactored versions of code written primarily by Drew Blount (data-processing pipeline, tf-idf, the ever-present 'parallelMap' and its variants), and also Andy Buchanan (the parser), and possibly others. 
