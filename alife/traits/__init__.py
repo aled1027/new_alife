@@ -26,6 +26,16 @@ def has_topic_bin(doc, topic_idx):
     else:
         return 0
 
+def topic_val(doc, topic_idx):
+    topics = doc.get('lda_topics', [])
+    strengths = {idx:strength for idx,strength in enumerate(topics)}
+    return strengths.get(topic_idx, 0)
+
+def cluster_val(doc, cluster_idx):
+    clusters = doc.get('wordvec_clusters', [])
+    distances = {idx:dist for idx,dist in enumerate(clusters)}
+    return distances.get(cluster_idx, 0)
+
 def has_cluster_bin(doc, cluster_idx):
     clusters = doc.get('wordvec_clusters', [])
     if cluster_idx in clusters:
@@ -89,6 +99,6 @@ def lda_dist(traits_a, traits_b):
 
 _trait_info = {
         'tf-idf': ('top_tf-idf', tfidf_dist, densify_tfidf, has_stem_bin),
-        'w2v': ('doc_vec', w2v_dist, lambda x: x, has_cluster_bin),
-        'lda': ('lda_topics', lda_dist, densify_lda, has_topic_bin)
+        'w2v': ('doc_vec', w2v_dist, lambda x: x, cluster_val),
+        'lda': ('lda_topics', lda_dist, densify_lda, topic_val)
 }

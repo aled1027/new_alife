@@ -83,8 +83,6 @@ def get_field_generators(collection, field_names, null_values=None, limit = None
                         for pat in data) if all(y is not nil for y,nil in zip(x,null_values)))
 
 
-    # I want to get more than 1 field....
-
 def crawl_lineage(db, ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], 
                   enforce_func = lambda pat: len(pat.get('citedby', [])) > 75, 
                   flatten = False):

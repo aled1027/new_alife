@@ -1,5 +1,5 @@
 # Measure the Generalized Price Equation terms for all of our traits and trait types for arbitrary episodes of evolution.
-from alife.util.general import timer
+from alife.util.general import timer, load_obj, step_through_time, dt_as_str
 from alife.util.dbutil import get_fields_unordered as get_fields
 from alife.mockdb import get_mock
 from alife.traits import _trait_info
@@ -7,39 +7,16 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 import numpy as np
 
-def step_through_time(start,end, delta=timedelta(days=7)):
-    """ Returns a list of time pairs (start,end) which define 
-    endpoints of intervals of length delta (default 1 week). """
-    i = 0
-    times = []
-    _current_time = start + delta
-    while _current_time < end:
-        nxt = _current_time + delta
-        times.append((_current_time, nxt))
-        _current_time = nxt
-        i += 1
-    return times
+_pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops'
 
-def get_populations(db, time_1, time_2, trait_type = 'tf-idf', limit=100):
-    trait_field, _,_,_ = _trait_info[trait_type]
-    fields = [trait_field, 'rawcites', 'citedby']
-    nils = [[],[],[]]
-    """
-    Given two times, get an ancestral population, all those occurring before time 1, 
-    and a descendant population, all those occuring between time1 and time2.
-    This is the crucial function for making sure the analysis is fast. This is slow 
-    even though we have indexed on isd. The solution seems to be to pre-compute these
-    populations and store them in mongodb. Key from time to docs with all the traits, citedby,rawcites.
-    """
-    projection = {field: 1 for field in fields}
-    enforcefunc = lambda x: all(x.get(field,nil) != nil for field,nil in zip(fields,nils))
+def load_pops(start_time, limit = None):
+    date_str = dt_as_str(start_time)
+    popfn = '/'.join([_pop_dir, date_str+'.p'])
+    doc = load_obj(popfn)
     if limit is not None:
-        ancestors = (a for a in db.traits.find({'isd': {'$lt': time_1}}, projection).limit(limit) if enforcefunc(a))
-        descendants = (d for d in db.traits.find({'isd': {'$gte': time_1, '$lt': time_2}}).limit(limit) if enforcefunc(d))
+        return doc['ancestors'], doc['descendants']
     else:
-        ancestors = (a for a in db.traits.find({'isd': {'$lt': time_1}}, projection) if enforcefunc(a))
-        descendants = (d for d in db.traits.find({'isd': {'$gte': time_1, '$lt': time_2}}) if enforcefunc(d))
-    return list(ancestors), list(descendants)
+        return doc['ancestors'][:limit], doc['descendants'][:limit]
 
 def get_rel_num_children(population, rel_avg = True):
     """
@@ -76,8 +53,8 @@ def get_traits(population, trait_type, trait):
     whose i^th element indicates whether the i^th member of the population
     has the trait or not. It is binary for now. 
     """
-    _,_,_,has_trait = _trait_info[trait_type]
-    return np.array([has_trait(doc, trait) for doc in population])
+    _,_,_,trait_val = _trait_info[trait_type]
+    return np.array([trait_val(doc, trait) for doc in population])
 
 def _cov2(x,y):
     """ Computes the covariance between vectors x and y, 
@@ -104,14 +81,27 @@ def compute_gpe(childchar, parchar, anc_traits, dec_traits, sample_cov=True):
     t2 = total - t1 + t3
     return t1,t2,t3
 
-def gpe(db, time_1, time_2, trait_type, trait, limit=None):
+def gpe(time_1, trait_type, trait, limit=None):
     """ Computes the GPE for the given trait on specified populations. """
-    ancestors, descendants = get_populations(db, time_1, time_2, trait_type, limit=limit)
+    ancestors, descendants = load_pops(time_1, limit=limit)
     ancestor_traits = get_traits(ancestors, trait_type, trait)
     descendant_traits = get_traits(descendants, trait_type, trait)
     n_children_rel = get_rel_num_children(ancestors)
     n_parents_rel = get_rel_num_parents(descendants)
     return compute_gpe(n_children_rel, n_parents_rel, ancestor_traits, descendant_traits)
+
+def gpe_multi(time_1, trait_type, traits, limit=None, old_ancestors = []):
+    """ Computes the GPE for the given traits on specified populations. """
+    new_ancestors, descendants = load_pops(time_1, limit=limit)
+    ancestors = old_ancestors + new_ancestors
+    n_children_rel = get_rel_num_children(ancestors)
+    n_parents_rel = get_rel_num_parents(descendants)
+    peqs = {time_1: {}}
+    for trait in traits:
+        ancestor_traits = get_traits(ancestors, trait_type, trait)
+        descendant_traits = get_traits(descendants, trait_type, trait)
+        peqs[time_1][trait] = compute_gpe(n_children_rel, n_parents_rel, ancestor_traits, descendant_traits)
+    return peqs, new_ancestors
 
 def test(time_limit=10, pop_limit = 1000):
     """ Runs the GPE calculation on a subset of each population in the time window 1976-2014, for the tf-idf trait 'dna'. """
@@ -120,26 +110,51 @@ def test(time_limit=10, pop_limit = 1000):
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
     trait_type = 'tf-idf'
-    trait = 'dna'
+    interesting_traits = ['link', 'hyperlink', 'ribonucleas', 'liquid',
+                          'semiconductor', 'softwar', 'batteri', 'film', 
+                          'tape', 'video', 'crypto', 'fluroesc', 
+                          'network', 'cancer', 'internet', 'mobile', 
+                          'processor', 'smart', 'sequenc', 'jet', 'droplet', 
+                          'graft', 'prosthet', 'dna', ]
+    uninteresting_traits = ['results','consists','adjustment',
+                           'layers','increase','aligned','zone',
+                           'include','indicating','applied',
+                           'connects','condition','joined','large',
+                           'small','path']
+    traits = interesting_traits + uninteresting_traits
     time_limit = 10
-    gpes = []
-    for (t1,t2) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
-        gpes.append(gpe(db, t1, t2, trait_type, trait, pop_limit))
+    gpes = {}
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
+        gpes[t1] = gpe_multi(t1, trait_type, traits, pop_limit)[t1]
     return gpes
 
 def main():
-    """ Runs the GPE calculation on each population in the time window 1976-2014, for the tf-idf trait 'evolv'. """
     db = MongoClient().patents
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
     trait_type = 'tf-idf'
-    trait = 'evolv'
-    gpes = []
-    for (t1,t2) in step_through_time(mindate,maxdate,oneweek):
-        gpes.append(gpe(db, t1, t2, trait_type, trait))
+    interesting_traits = ['link', 'hyperlink', 'ribonucleas', 'liquid',
+                          'semiconductor', 'softwar', 'batteri', 'film', 
+                          'tape', 'video', 'crypto', 'fluroesc', 
+                          'network', 'cancer', 'internet', 'mobile', 
+                          'processor', 'smart', 'sequenc', 'jet', 'droplet', 
+                          'graft', 'prosthet', 'dna', ]
+    uninteresting_traits = ['results','consists','adjustment',
+                           'layers','increase','aligned','zone',
+                           'include','indicating','applied',
+                           'connects','condition','joined','large',
+                           'small','path']
+    traits = interesting_traits + uninteresting_traits
+    time_limit = 10
+    gpes = {}
+    old_ancestors = []
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
+        gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, None, old_ancestors)
+        gpes[t1] = gpe_dict[t1]
+        old_ancestors = old_ancestors + new_ancestors
     return gpes
-
+    
 if __name__ == '__main__':
     gpes = test()
 

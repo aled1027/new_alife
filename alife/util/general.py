@@ -2,10 +2,38 @@
 
 from itertools import islice
 from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date. 
+from datetime import datetime, timedelta
 import cPickle
 import numpy as np
 import time
 import numpy as np
+
+_date_fmt_string = "%Y_%m_%d"
+
+def dt_as_str(date_time):
+    return date_time.strftime(_date_fmt_string)
+
+def string_to_dt(fmt_string):
+    """ Takes a datetime format string in the above format and produces a datetime."""
+    year,month,day = map(int, fmt_string.split('_'))
+    return datetime(year=year,month=month,day=day)
+
+def step_through_time(start,end, delta=timedelta(days=7)):
+    """ Returns a list of time pairs triples (t-1,t, t+1) which define 
+    endpoints of intervals of length delta (default 1 week). """
+    i = 0
+    times = []
+    _current_time = start
+    nxt1 = start + delta
+    nxt2 = start + delta + delta
+    while nxt2 < end:
+        nxt2 = nxt1 + delta
+        times.append((_current_time, nxt1, nxt2))
+        _current_time = nxt1
+        nxt1 = nxt2
+        i += 1
+    print "stepped through {} times steps, starting at {} and ending at {}".format(i, start, nxt2)
+    return times
 
 def take(n, iterable):
     """
@@ -86,3 +114,5 @@ def timer(f,n=10):
     print "function: {}, min: {}, max: {}, average: {}".format(
         f.__name__, mn,mx,avg
     )
+
+
