@@ -54,7 +54,7 @@ def get_fields_unordered(collection, field_names=None, null_values=None, limit =
 
 def get_field_generator(collection, field_name, null_value=None, limit = None):
     """
-    Returns an nd-array, one for each element of the collection,
+    Returns a generator for an nd-array, one for each element of the collection,
     or limited to a certain number of rows. The columns are the fields.
     If we don't have a field instead return the specified null value. 
     """
@@ -65,6 +65,25 @@ def get_field_generator(collection, field_name, null_value=None, limit = None):
     else:
         data = collection.find({},projection)
     return (x for x in (pat.get(field_name, null_value) for pat in data) if x is not null_value)
+
+def get_field_generators(collection, field_names, null_values=None, limit = None):
+    """
+    Returns a generator for an nd-array, one for each element of the collection,
+    or limited to a certain number of rows. The columns are the fields.
+    If we don't have a field instead return the specified null value. 
+    """
+    projection = {}
+    projection = {field_name:1 for field_name in field_names}
+    if limit:
+        data = collection.find({},projection).limit(limit)
+    else:
+        data = collection.find({},projection)
+    return (x for x in ([pat.get(field_name, null_value) for field_name, null_value 
+                         in zip(field_names, null_values)] 
+                        for pat in data) if all(y is not nil for y,nil in zip(x,null_values)))
+
+
+    # I want to get more than 1 field....
 
 def crawl_lineage(db, ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], 
                   enforce_func = lambda pat: len(pat.get('citedby', [])) > 75, 

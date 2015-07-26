@@ -7,7 +7,7 @@ from collections import Counter
 from pymongo import MongoClient
 from alife import _allstar_pnos, _normal_pnos
 from alife.mockdb import get_mock
-from alife.util.dbutil import get_fields_unordered
+from alife.util.dbutil import get_fields_unordered, get_field_generators
 from pprint import pprint
 
 def dooropen_hist_micro_overlaid(show=False, savefn=None):
@@ -125,8 +125,69 @@ def dooropen_hist_w2v_2gen(show=False, savefn=None):
     ax3.set_title('Genealogy Trait Variance')
     plt.title('1-generation Word2Vec Breadth stats')
     if savefn is not None:
-        plt.savefig(savefn, dpi=100)
+        plt.savefig(savefn, dpi=50)
     if show:
+        plt.show()
+
+def dooropen_vs_indegree_plots(lim=250000, savefn='test.pdf', show=False):
+    db = MongoClient().patents
+    trait_fields = ["_id", "2_gen_avg_dist_w2v", "2_gen_sum_dist_w2v", "citedby"]
+    trait_nulls = [None, -2, -2, []]
+    trait_pnos, avgs, sums, cbs = zip(*list(get_field_generators(
+        db.traits, trait_fields, trait_nulls, limit=lim  
+    )))
+    in_degs = [len(x) for x in cbs]
+    _, allstar_avgs, allstar_sums, allstar_cbs = zip(*list([
+        [db.traits.find_one({'_id': pno}).get(field, nil) for field,nil in zip(trait_fields, trait_nulls)]
+        for pno in _allstar_pnos
+    ]))
+    _, normal_avgs, normal_sums, normal_cbs = zip(*list((
+        [db.traits.find_one({'_id': pno}).get(field, -2) for field,nil in zip(trait_fields, trait_nulls)]
+        for pno in _normal_pnos
+    )))
+    allstar_indegs = [len(cb) for cb in allstar_cbs]
+    normal_indegs = [len(cb) for cb in normal_cbs]
+    allstar_slopes = [db.patns.find_one({'pno': pno}).get('wave_slope', None)
+                      for pno in _allstar_pnos]
+    normal_slopes = [db.patns.find_one({'pno': pno}).get('wave_slope', None)
+                     for pno in _normal_pnos]
+    patn_fields = ["pno", "wave_slope"]
+    patn_nulls = [None, None]
+    pno_2_slope = {pno: slope for pno,slope in get_field_generators(
+        db.patns, patn_fields, patn_nulls, limit=lim
+    )}
+    slopes_collate = [pno_2_slope.get(pno, None) for pno in trait_pnos]
+    assert(len(slopes_collate) == len(avgs) == len(sums))
+    # plot total reach vis in-degree.
+    f,axarr = plt.subplots(2,2)
+    f.set_size_inches(18.5,10.5)
+    axarr[0,0].scatter(in_degs,avgs, s=2)
+    axarr[0,0].scatter(allstar_indegs, allstar_avgs, marker='x', color='red')
+    axarr[0,0].scatter(normal_indegs, normal_avgs, marker='x', color='green')
+    axarr[0,0].set_xlabel('In-Degree')
+    axarr[0,0].set_ylabel('Average Reach')
+    axarr[0,0].set_ylim([0,np.max(allstar_avgs+avgs+normal_avgs)])
+    axarr[0,1].scatter(in_degs,sums, s=2)
+    axarr[0,1].scatter(allstar_indegs, allstar_sums, marker='x', color='red')
+    axarr[0,1].scatter(normal_indegs, normal_sums, marker='x', color='green')
+    axarr[0,1].set_xlabel('In-Degree')
+    axarr[0,1].set_ylabel('Total Reach')
+    axarr[0,1].set_ylim([0,np.max(allstar_sums+sums+normal_sums)])
+    axarr[1,0].scatter(slopes_collate, avgs, s=2)
+    axarr[1,0].scatter(allstar_slopes, allstar_avgs, marker='x', color='red')
+    axarr[1,0].scatter(normal_slopes, normal_avgs, marker='x', color='green')
+    axarr[1,0].set_xlabel('wave slope')
+    axarr[1,0].set_ylabel('average reach')
+    axarr[1,0].set_ylim([0,np.max(allstar_avgs+avgs+normal_avgs)])
+    axarr[1,1].scatter(slopes_collate, sums, s=2)
+    axarr[1,1].scatter(allstar_slopes, allstar_sums, marker='x', color='red')
+    axarr[1,1].scatter(normal_slopes, normal_sums, marker='x', color='green')
+    axarr[1,1].set_xlabel('wave slope')
+    axarr[1,1].set_ylabel('total reach')
+    axarr[1,1].set_ylim([0,np.max(allstar_sums+sums+normal_sums)])
+    if savefn is not None:
+        plt.savefig(savefn, dpi=50)
+    if show: 
         plt.show()
 
 def sorted_dooropen_fields():
@@ -156,9 +217,11 @@ def sorted_dooropen_fields():
     return sorted_avgs, sorted_sums, sorted_vars
 
 if __name__ == '__main__':
-#    sorted_avgs, sorted_sums, sorted_vars = sorted_dooropen_fields()
+    dooropen_vs_indegree_plots(lim=None,savefn='markplot.pdf',show=False)
+    """
     savefn ='overlay_test.pdf'
     if len(sys.argv) == 2:
         savefn = sys.argv[1]
     dooropen_hist_micro_overlaid(show=False, savefn=savefn)
+    """
 

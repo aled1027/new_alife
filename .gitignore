@@ -3,6 +3,7 @@
 *log
 *csv
 *png
+*pdf
 *.svmlight
 *.index
 *html

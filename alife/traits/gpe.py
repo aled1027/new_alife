@@ -9,7 +9,7 @@ import numpy as np
 
 def step_through_time(start,end, delta=timedelta(days=7)):
     """ Returns a list of time pairs (start,end) which define 
-    endpoints of intervals of length delta (e.g. 1 week). """
+    endpoints of intervals of length delta (default 1 week). """
     i = 0
     times = []
     _current_time = start + delta
@@ -114,7 +114,7 @@ def gpe(db, time_1, time_2, trait_type, trait, limit=None):
     return compute_gpe(n_children_rel, n_parents_rel, ancestor_traits, descendant_traits)
 
 def test(time_limit=10, pop_limit = 1000):
-    """ Runs the GPE calculation on a sample population from the 1980s, for the trait 'dna'. """
+    """ Runs the GPE calculation on a subset of each population in the time window 1976-2014, for the tf-idf trait 'dna'. """
     db = MongoClient().patents
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
@@ -128,7 +128,7 @@ def test(time_limit=10, pop_limit = 1000):
     return gpes
 
 def main():
-    """ Runs the GPE calculation on a sample population from the 1980s, for the trait 'dna'. """
+    """ Runs the GPE calculation on each population in the time window 1976-2014, for the tf-idf trait 'evolv'. """
     db = MongoClient().patents
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']

@@ -1,4 +1,4 @@
-# Inserts a field for every document for their LDA topics (in decreasing order of strength)
+# Inserts a field for every document for their LDA topic indices and strengths (in decreasing order of strength)
 from pymongo import MongoClient
 from alife.txtmine.lda import load_lda, load_corpus, load_vocab
 from alife.util.general import load_obj

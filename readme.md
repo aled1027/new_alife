@@ -1,1 +1,5 @@
-This repository contains the code for the current alife group. It is all refactored and documented and beautiful. 
+# alife
+This repository contains the codebase of the current (as of Summer 2015) group of students in the Reed Artificial Life Lab, organized as a python package. It is intended to be well-organized and well documented so that future members of the group can run, edit, and contribute new code, and so that others can reproduce our results. At the core of this codebase is a large, curated database, containing patent text and metadata (roughly 200GB). Where possible, we have attempted to abstract the code to be useful on arbitrary datasets, e.g. separating database access from algorithms. See ```/alife/traits/gpe.py``` for an example of this. 
+
+### historical context
+The repository contains refactored versions of code written primarily by Drew Blount (data-processing pipeline, tf-idf, the ever-present 'parallelMap' and its variants), but also Andy Buchanan (the parser) and possibly others. It reflects collaborative efforts with Mark Bedau, Drew Blount, Zackary Dunivin, Alex Ledger, Aaron Ramcharan, and Norman Packard. 
