@@ -6,6 +6,7 @@ from pprint import pprint
 from jmAlife.dbManage.parallelMap import parallelMap
 from pyLDAvis.gensim import prepare
 import pyLDAvis
+import logging
 
 def test(limit=100):
     # Get filenames.
@@ -13,22 +14,26 @@ def test(limit=100):
     name = 'lda_200'
     pnofn = '/'.join([indir, 'pnos.p'])
     ldafn = '/'.join([indir, name+'.lda'])
-    corpusfn = '/'.join([indir, 'corpus'+name+'.svmlight'])
-    vocabfn = '/'.join([indir, 'vocab.dict'])
+    corpusfn = '/'.join([indir, 'corpus_'+name+'.svmlight'])
+    vocabfn = '/'.join([indir, 'vocab_'+name+'.dict'])
 
     # Load persisted data from disk. 
+    print "loading data..."
     vocab = load_vocab(vocabfn)
     corpus = load_corpus(corpusfn)
     lda = load_lda(ldafn)
     pnos = load_obj(pnofn)
     pno2id = {p:i for i,p in enumerate(pnos)}
 
-    #produce visualization. 
-    visfn = '/'.join([indir, 'vis.html'])
-    vis_data = prepare(lda, corpus, vocab)
-    pyLDAvis.save_html(vis_data, visfn)
+    #produce visualization... commented out for now. keeps crashing the machine. 
+#    print "producing visualization..."
+#    visfn = '/'.join([indir, 'vis.html'])
+#    vis_data = prepare(lda, corpus, vocab)
+#    print "saving visualization..."
+#    pyLDAvis.save_html(vis_data, visfn)
 
     # put doc topics in db. 
+    print "Getting doc topics..."
     assert(len(corpus) == len(pnos))
     db = MongoClient().patents
     def partfunc(doc):
@@ -37,6 +42,7 @@ def test(limit=100):
     pats_test = db.traits.find().limit(limit)
     for p in pats_test:
         pprint(partfunc(p))
+    print "\nDone."
 
 def main():
     # Get filenames. 
@@ -44,24 +50,26 @@ def main():
     name = 'lda_200'
     pnofn = '/'.join([indir, 'pnos.p'])
     ldafn = '/'.join([indir, name+'.lda'])
-    corpusfn = '/'.join([indir, 'corpus'+name+'.svmlight'])
-    vocabfn = '/'.join([indir, 'vocab.dict'])
-    
+    corpusfn = '/'.join([indir, 'corpus_'+name+'.svmlight'])
+    vocabfn = '/'.join([indir, 'vocab_'+name+'.dict'])
+        
     # Load persisted data from disk.
+    print "loading data..."
     vocab = load_vocab(vocabfn)
     corpus = load_corpus(corpusfn)
     lda = load_lda(ldafn)
     pnos = load_obj(pnofn)
     pno2id = {p:i for i,p in enumerate(pnos)}
 
-    #produce visualization. 
-    visfn = '/'.join([indir, 'vis.html'])
-    vis_data = prepare(lda, corpus, vocab)
-    pyLDAvis.save_html(vis_data, visfn)
+    #produce visualization... commented out for now due to crashing. Ugh PCA again...
+#    visfn = '/'.join([indir, 'vis.html'])
+#    vis_data = prepare(lda, corpus, vocab)
+#    pyLDAvis.save_html(vis_data, visfn)
 
     # put doc topics in db. 
+    print "inserting doc topics..."
     db = MongoClient().patents
-    assert(len(corpus) == len(pnos))
+    print "len(corpus): {}, len(pnos): {}".format(len(pnos), len(corpus))
     def partfunc(doc):
         pno = doc['_id']
         try: 
@@ -70,16 +78,14 @@ def main():
             topics = lda[bow]
             return {'$set': {'lda_topics': topics}}
         except:
-            # Is there some surt of null thing I can pass
-            # to cursor.update() which does nothing?
-            return None
+            logging.warning("no topics for {}".format(pno))
+            return {'$set': {'no_topics': True}}
     parallelMap(
         partfunc,
         in_collection = db.traits,
         out_collection = db.traits,
         findArgs = {
-            # hmm. Want some way to spec that 
-            'spec': {'top_tf-idf': {'$nin': [[]]}}, 
+            'spec': {},
             'fields': {'_id':1}
         },
         bSize = 1000,
@@ -87,5 +93,5 @@ def main():
     )
 
 if __name__ == '__main__':
-    test()
+    main()
 
