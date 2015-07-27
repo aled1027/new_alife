@@ -6,7 +6,13 @@ from alife.traits import _trait_info
 from alife.traits.plot_gpe import plot_gpe
 from pymongo import MongoClient
 from datetime import datetime, timedelta
+from pprint import pprint
 import numpy as np
+import logging
+import multiprocessing as mp
+
+_log_format = '%(asctime)s : %(levelname)s : %(message)s'
+logging.basicConfig(filename='gpe.log',format= _log_format, level=logging.INFO)
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops'
 _interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
@@ -117,6 +123,76 @@ def gpe_multi(time_1, trait_type, traits, limit=None, old_ancestors = []):
         peqs[time_1][trait] = compute_gpe(n_children_rel, n_parents_rel, ancestor_traits, descendant_traits)
     return peqs, new_ancestors
 
+def gpe_multi_threaded(time_1, trait_type, traits, limit=None, old_ancestors = []):
+    """ Computes the GPE for the given traits on specified populations. Goes after each trait in parallel. """
+    new_ancestors, descendants = load_pops(time_1, limit=limit)
+    ancestors = old_ancestors + new_ancestors
+    n_children_rel = get_rel_num_children(ancestors)
+    n_parents_rel = get_rel_num_parents(descendants)
+    peqs = {time_1: {}}
+    workQueue = mp.Queue()
+    returnQueue = mp.Queue()
+    # add each trait to a work queue
+    for trait in traits:
+        workQueue.put(trait)
+    def threadFunc():
+        while not workQueue.empty():
+            trait = workQueue.get()
+            ancestor_traits = get_traits(ancestors, trait_type, trait)
+            descendant_traits = get_traits(descendants, trait_type, trait)
+            returnQueue.put({trait: compute_gpe(n_children_rel, n_parents_rel, ancestor_traits, descendant_traits)})
+    workers = []
+    # get the worker threads goin. 
+    for i in range(mp.cpu_count()):
+        p = mp.Process(target=threadFunc)
+        p.start()
+        workers.append(p)
+    
+    # wait for the workers to finish.
+    for worker in workers:
+        worker.join()
+
+    # Put the values the threads computed into a dict. 
+    out_dict = {}
+    while not returnQueue.empty():
+        out_dict.update(returnQueue.get())
+    
+    # make sure the dict has the right number of values (one for each trait!)
+    assert(len(out_dict)==len(traits))
+    return {time_1: out_dict},new_ancestors
+
+def tester_serial():
+    db = MongoClient().patents
+    oneweek = timedelta(days=7)
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    trait_type = 'w2v'
+    traits = list(set(_docvec_traits))
+    old_ancestors = []
+    gpes = {}
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:10]:
+        logging.info("computing gpe for time {}".format(t1))
+        gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, None, old_ancestors)
+        gpes[t1] = gpe_dict[t1]
+        old_ancestors = old_ancestors + new_ancestors
+    return gpes
+
+def tester_mp():
+    db = MongoClient().patents
+    oneweek = timedelta(days=7)
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    trait_type = 'w2v'
+    traits = list(set(_docvec_traits))
+    old_ancestors = []
+    gpes = {}
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:10]:
+        logging.info("computing gpe for time {}".format(t1))
+        gpe_dict, new_ancestors = gpe_multi_threaded(t1, trait_type, traits, None, old_ancestors)
+        gpes[t1] = gpe_dict[t1]
+        old_ancestors = old_ancestors + new_ancestors
+    return gpes
+
 def test_tfidf(time_limit=20, pop_limit = 50000):
     """ Runs the GPE calculation on a subset of each population in the time window 1976-2014, for the tf-idf trait 'dna'. """
     db = MongoClient().patents
@@ -128,7 +204,7 @@ def test_tfidf(time_limit=20, pop_limit = 50000):
     old_ancestors = []
     gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
-        print "computing gpe for time {}".format(t1)
+        logging.info("computing gpe for time {}".format(t1))
         gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, pop_limit, old_ancestors)
         gpes[t1] = gpe_dict[t1]
         old_ancestors = old_ancestors + new_ancestors
@@ -145,7 +221,7 @@ def test_docvec(time_limit=20, pop_limit = 50000):
     old_ancestors = []
     gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
-        print "computing gpe for time {}".format(t1)
+        logging.info("computing gpe for time {}".format(t1))
         gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, pop_limit, old_ancestors)
         gpes[t1] = gpe_dict[t1]
         old_ancestors = old_ancestors + new_ancestors
@@ -162,7 +238,7 @@ def main_tfidf():
     old_ancestors = []
     gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
-        print "computing gpe for time {}".format(t1)
+        logging.info("computing gpe for time {}".format(t1))
         gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, None, old_ancestors)
         gpes[t1] = gpe_dict[t1]
         old_ancestors = old_ancestors + new_ancestors
@@ -179,7 +255,7 @@ def main_docvec():
     old_ancestors = []
     gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
-        print "computing gpe for time {}".format(t1)
+        logging.info("computing gpe for time {}".format(t1))
         gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, None, old_ancestors)
         gpes[t1] = gpe_dict[t1]
         old_ancestors = old_ancestors + new_ancestors
@@ -195,9 +271,9 @@ def main_both():
     gpes_tfidf = {}
     gpes_docvec = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
-        print "computing gpe for time {}, both tf-idf and w2v".format(t1)
-        gpe_dict_w2v, new_ancestors = gpe_multi(t1, 'w2v', _docvec_traits, None, old_ancestors)
-        gpe_dict_tfidf, _ = gpe_multi(t1, 'tf-idf', _tfidf_traits, None, old_ancestors)
+        logging.info("computing gpe for time {}, both tf-idf and w2v".format(t1))
+        gpe_dict_w2v, new_ancestors = gpe_multi_threaded(t1, 'w2v', _docvec_traits, None, old_ancestors)
+        gpe_dict_tfidf, _ = gpe_multi(t1, 'tf-idf', _tfidf_traits, None, old_ancestors) # multithreading Not worth overhead for tfidf. 
         gpes_docvec[t1] = gpe_dict_w2v[t1]
         gpes_tfidf[t1] = gpe_dict_tfidf[t1]
         old_ancestors = old_ancestors + new_ancestors
@@ -205,5 +281,12 @@ def main_both():
     
 if __name__ == '__main__':
     gpes_tfidf, gpes_docvec = main_both()
-    pickle_obj('gpes_docvec.p', gpes_docvec)
-    pickle_obj('gpes_tfidf.p', gpes_tfidf)
+    try:
+        pickle_obj('gpes_docvec.p', gpes_docvec)
+        pickle_obj('gpes_tfidf.p', gpes_tfidf)
+    except:
+        logging.info("error.")
+        logging.info("docvec gpes:")
+        pprint(gpes_docvec)
+        logging.info("tfidf gpes.")
+        pprint(gpes_tfidf)
