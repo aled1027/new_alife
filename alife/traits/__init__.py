@@ -28,12 +28,12 @@ def has_topic_bin(doc, topic_idx):
 
 def topic_val(doc, topic_idx):
     topics = doc.get('lda_topics', [])
-    strengths = {idx:strength for idx,strength in enumerate(topics)}
+    strengths = {idx:strength for idx,strength in topics}
     return strengths.get(topic_idx, 0)
 
 def cluster_val(doc, cluster_idx):
     clusters = doc.get('wordvec_clusters', [])
-    distances = {idx:dist for idx,dist in enumerate(clusters)}
+    distances = {idx:dist for idx,dist in clusters}
     return distances.get(cluster_idx, 0)
 
 def has_cluster_bin(doc, cluster_idx):

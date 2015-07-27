@@ -42,7 +42,9 @@ def _hsl_to_rgb(hsl):
             raise RuntimeError("{} is an invalid HSL color.".format((h,s,l)))
     return rgb
 
-def discrete_color_scheme(n=10,home_color=(193,60,35)):
+
+#def discrete_color_scheme(n=10,home_color=(193,60,35)):
+def discrete_color_scheme(n=10,home_color=(193,95,25)): # I wanted to make the default darker. Still cyan don't worry.
     """
     Generate a color scheme based on n colors evenly space around the color wheel,
     in terms of angle. The home_color is the default starting point, which is

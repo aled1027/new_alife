@@ -1,22 +1,36 @@
 # Measure the Generalized Price Equation terms for all of our traits and trait types for arbitrary episodes of evolution.
-from alife.util.general import timer, load_obj, step_through_time, dt_as_str
+from alife.util.general import timer, load_obj, step_through_time, dt_as_str, pickle_obj
 from alife.util.dbutil import get_fields_unordered as get_fields
 from alife.mockdb import get_mock
 from alife.traits import _trait_info
+from alife.traits.plot_gpe import plot_gpe
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import numpy as np
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops'
+_interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
+                          'semiconductor', 'softwar', 'batteri', 'crypto',
+                           'video', 'fluroesc', 'diode','prosthet',
+                          'network', 'cancer', 'neural',
+                          'processor', 'smart', 'sequenc', 'jet', 'droplet', 
+                          'graft', 'link', 'tape', 'film','liquid','ribonucleas']
+_uninteresting_tfidf_traits = ['results','consists','adjustment',
+                           'layers','increase','aligned','zone',
+                           'include','indicating','applied',
+                           'connects','condition','joined','large',
+                           'small','path']
+_tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
+_docvec_traits = range(200)
 
 def load_pops(start_time, limit = None):
     date_str = dt_as_str(start_time)
     popfn = '/'.join([_pop_dir, date_str+'.p'])
     doc = load_obj(popfn)
     if limit is not None:
-        return doc['ancestors'], doc['descendants']
+        return doc['new_ancestors'], doc['descendants']
     else:
-        return doc['ancestors'][:limit], doc['descendants'][:limit]
+        return doc['new_ancestors'][:limit], doc['descendants'][:limit]
 
 def get_rel_num_children(population, rel_avg = True):
     """
@@ -103,58 +117,93 @@ def gpe_multi(time_1, trait_type, traits, limit=None, old_ancestors = []):
         peqs[time_1][trait] = compute_gpe(n_children_rel, n_parents_rel, ancestor_traits, descendant_traits)
     return peqs, new_ancestors
 
-def test(time_limit=10, pop_limit = 1000):
+def test_tfidf(time_limit=20, pop_limit = 50000):
     """ Runs the GPE calculation on a subset of each population in the time window 1976-2014, for the tf-idf trait 'dna'. """
     db = MongoClient().patents
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
     trait_type = 'tf-idf'
-    interesting_traits = ['link', 'hyperlink', 'ribonucleas', 'liquid',
-                          'semiconductor', 'softwar', 'batteri', 'film', 
-                          'tape', 'video', 'crypto', 'fluroesc', 
-                          'network', 'cancer', 'internet', 'mobile', 
-                          'processor', 'smart', 'sequenc', 'jet', 'droplet', 
-                          'graft', 'prosthet', 'dna', ]
-    uninteresting_traits = ['results','consists','adjustment',
-                           'layers','increase','aligned','zone',
-                           'include','indicating','applied',
-                           'connects','condition','joined','large',
-                           'small','path']
-    traits = interesting_traits + uninteresting_traits
-    time_limit = 10
+    traits = list(set(_tfidf_traits))
+    old_ancestors = []
     gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
-        gpes[t1] = gpe_multi(t1, trait_type, traits, pop_limit)[t1]
+        print "computing gpe for time {}".format(t1)
+        gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, pop_limit, old_ancestors)
+        gpes[t1] = gpe_dict[t1]
+        old_ancestors = old_ancestors + new_ancestors
     return gpes
 
-def main():
+def test_docvec(time_limit=20, pop_limit = 50000):
+    """ Runs the GPE calculation on a subset of each population in the time window 1976-2014, for the tf-idf trait 'dna'. """
+    db = MongoClient().patents
+    oneweek = timedelta(days=7)
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    trait_type = 'w2v'
+    traits = _docvec_traits
+    old_ancestors = []
+    gpes = {}
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
+        print "computing gpe for time {}".format(t1)
+        gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, pop_limit, old_ancestors)
+        gpes[t1] = gpe_dict[t1]
+        old_ancestors = old_ancestors + new_ancestors
+    return gpes
+
+def main_tfidf():
+    """ Runs the GPE calculation on the whole population, for each of a selected bunch of tf-idf traits."""
     db = MongoClient().patents
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
     trait_type = 'tf-idf'
-    interesting_traits = ['link', 'hyperlink', 'ribonucleas', 'liquid',
-                          'semiconductor', 'softwar', 'batteri', 'film', 
-                          'tape', 'video', 'crypto', 'fluroesc', 
-                          'network', 'cancer', 'internet', 'mobile', 
-                          'processor', 'smart', 'sequenc', 'jet', 'droplet', 
-                          'graft', 'prosthet', 'dna', ]
-    uninteresting_traits = ['results','consists','adjustment',
-                           'layers','increase','aligned','zone',
-                           'include','indicating','applied',
-                           'connects','condition','joined','large',
-                           'small','path']
-    traits = interesting_traits + uninteresting_traits
-    time_limit = 10
-    gpes = {}
+    traits = list(set(_tfidf_traits))
     old_ancestors = []
+    gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
+        print "computing gpe for time {}".format(t1)
         gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, None, old_ancestors)
         gpes[t1] = gpe_dict[t1]
         old_ancestors = old_ancestors + new_ancestors
     return gpes
+
+def main_docvec():
+    """ Runs the GPE calculation for the whole population, for each docvec trait."""
+    db = MongoClient().patents
+    oneweek = timedelta(days=7)
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    trait_type = 'w2v'
+    traits = _docvec_traits
+    old_ancestors = []
+    gpes = {}
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
+        print "computing gpe for time {}".format(t1)
+        gpe_dict, new_ancestors = gpe_multi(t1, trait_type, traits, None, old_ancestors)
+        gpes[t1] = gpe_dict[t1]
+        old_ancestors = old_ancestors + new_ancestors
+    return gpes
+
+def main_both():
+    """ Runs the GPE calculation for the whole population, for each docvec trait."""
+    db = MongoClient().patents
+    oneweek = timedelta(days=7)
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    old_ancestors = []
+    gpes_tfidf = {}
+    gpes_docvec = {}
+    for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
+        print "computing gpe for time {}, both tf-idf and w2v".format(t1)
+        gpe_dict_w2v, new_ancestors = gpe_multi(t1, 'w2v', _docvec_traits, None, old_ancestors)
+        gpe_dict_tfidf, _ = gpe_multi(t1, 'tf-idf', _tfidf_traits, None, old_ancestors)
+        gpes_docvec[t1] = gpe_dict_w2v[t1]
+        gpes_tfidf[t1] = gpe_dict_tfidf[t1]
+        old_ancestors = old_ancestors + new_ancestors
+    return gpes_tfidf, gpes_docvec
     
 if __name__ == '__main__':
-    gpes = test()
-
+    gpes_tfidf, gpes_docvec = main_both()
+    pickle_obj('gpes_docvec.p', gpes_docvec)
+    pickle_obj('gpes_tfidf.p', gpes_tfidf)
