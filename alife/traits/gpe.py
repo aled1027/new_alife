@@ -14,7 +14,7 @@ import multiprocessing as mp
 _log_format = '%(asctime)s : %(levelname)s : %(message)s'
 logging.basicConfig(filename='gpe.log',format= _log_format, level=logging.INFO)
 
-_pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops'
+_pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_weeks'
 _interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
                           'semiconductor', 'softwar', 'batteri', 'crypto',
                            'video', 'fluroesc', 'diode','prosthet',
@@ -177,21 +177,26 @@ def tester_serial():
         old_ancestors = old_ancestors + new_ancestors
     return gpes
 
-def tester_mp():
+def benchmark_fn():
     db = MongoClient().patents
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
-    trait_type = 'w2v'
-    traits = list(set(_docvec_traits))
     old_ancestors = []
-    gpes = {}
+    gpes_tfidf = {}
+    gpes_w2v = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:10]:
         logging.info("computing gpe for time {}".format(t1))
-        gpe_dict, new_ancestors = gpe_multi_threaded(t1, trait_type, traits, None, old_ancestors)
-        gpes[t1] = gpe_dict[t1]
+        gpe_dict_tfidf1, new_ancestors = gpe_multi(t1, 'tf-idf', _tfidf_traits, None, old_ancestors)
+        gpe_dict_tfidf2, _ = gpe_multi_threaded(t1, 'tf-idf', _tfidf_traits, None, old_ancestors)
+        gpe_dict_w2v1, _ = gpe_multi(t1, 'w2v', _docvec_traits, None, old_ancestors)
+        gpe_dict_w2v2, _ = gpe_multi_threaded(t1, 'w2v', _docvec_traits, None, old_ancestors)
+        assert(sorted(gpe_dict_w2v1.items()) == sorted(gpe_dict_w2v2.items())) # Make sure the multithreaded method returns the same terms.
+        assert(sorted(gpe_dict_tfidf1.items()) == sorted(gpe_dict_tfidf2.items())) # Make sure the multithreaded method returns the same terms.
+        gpes_tfidf[t1] = gpe_dict_tfidf1[t1]
+        gpes_w2v[t1] = gpe_dict_w2v1[t1]
         old_ancestors = old_ancestors + new_ancestors
-    return gpes
+    return gpes_tfidf, gpes_w2v
 
 def test_tfidf(time_limit=20, pop_limit = 50000):
     """ Runs the GPE calculation on a subset of each population in the time window 1976-2014, for the tf-idf trait 'dna'. """
@@ -199,8 +204,8 @@ def test_tfidf(time_limit=20, pop_limit = 50000):
     oneweek = timedelta(days=7)
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
-    trait_type = 'tf-idf'
-    traits = list(set(_tfidf_traits))
+#    trait_type = 'tf-idf'
+#    traits = list(set(_tfidf_traits))
     old_ancestors = []
     gpes = {}
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek)[:time_limit]:
@@ -273,9 +278,9 @@ def main_both():
     for (t1,_,_) in step_through_time(mindate,maxdate,oneweek):
         logging.info("computing gpe for time {}, both tf-idf and w2v".format(t1))
         gpe_dict_w2v, new_ancestors = gpe_multi_threaded(t1, 'w2v', _docvec_traits, None, old_ancestors)
-        gpe_dict_tfidf, _ = gpe_multi(t1, 'tf-idf', _tfidf_traits, None, old_ancestors) # multithreading Not worth overhead for tfidf. 
-        gpes_docvec[t1] = gpe_dict_w2v[t1]
-        gpes_tfidf[t1] = gpe_dict_tfidf[t1]
+        gpe_dict_tfidf, _ = gpe_multi_threaded(t1, 'tf-idf', _tfidf_traits, None, old_ancestors) # multithreading Not worth overhead for tfidf 
+        gpes_docvec[t1] = gpe_dict_w2v[t1] # alternatively, use dict.update()
+        gpes_tfidf[t1] = gpe_dict_tfidf[t1] # alternatively, use dict.update()
         old_ancestors = old_ancestors + new_ancestors
     return gpes_tfidf, gpes_docvec
     

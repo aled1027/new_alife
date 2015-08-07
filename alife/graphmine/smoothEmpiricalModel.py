@@ -1,7 +1,7 @@
 # This file gives the probability of citation given age and n_cites, according to the parameters we fit to our dataset. 
 
 import numpy as np
-
+y
 def attachment_kernel(n_cites, gamma=0.000655460045616, beta=1.0468):
     """
     The (unnormalized) probability density function which models 

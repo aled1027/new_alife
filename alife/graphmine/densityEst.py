@@ -127,13 +127,13 @@ def just_pcites(pcites_cutoff = 900, savefn = None, ret = True, show=True):
     if ret:
         return pcites_marginal_prob
 
-def pcites_func(x, gamma, beta):
+def pcites_func(x, gamma, beta, c):
     """
     The (unnormalized) probability density function which models 
     the marginal probability of citing a parent given in-degree. 
     See Valverde et al. 'attachment kernel'.
     """
-    return gamma*(1+beta)*(x**beta)
+    return c+gamma*(1+beta)*(x**beta)
 
 def weibull(x, shape=1.5, scale=1, c=1):
     """

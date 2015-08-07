@@ -1,6 +1,6 @@
 # General utility functions. 
 
-from itertools import islice
+from itertools import islice, izip, tee
 from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date. 
 from datetime import datetime, timedelta
 import cPickle
@@ -18,7 +18,7 @@ def string_to_dt(fmt_string):
     year,month,day = map(int, fmt_string.split('_'))
     return datetime(year=year,month=month,day=day)
 
-def step_through_time(start,end, delta=timedelta(days=7)):
+def step_thru_time(start,end, delta=timedelta(days=7)):
     """ Returns a list of time pairs triples (t-1,t, t+1) which define 
     endpoints of intervals of length delta (default 1 week). """
     i = 0
@@ -115,4 +115,35 @@ def timer(f,n=10):
         f.__name__, mn,mx,avg
     )
 
+def pairwise_iter(iterable):
+    """ Iterate over the iterable in pairs. E.g. 
+    [1,2,3,4,5] -> (1,2), (2,3), (3,4), ... """
+    a,b = tee(iterable)
+    next(b,None)
+    return izip(a,b)
 
+def month_year_iter(start_year, end_year, start_month=1, end_month=1):
+    ym_start= 12*start_year + start_month - 1
+    ym_end= 12*end_year + end_month - 1
+    for ym in range( ym_start, ym_end ):
+        y, m = divmod( ym, 12 )
+        yield y, m+1
+
+def qtr_year_iter(start_year, end_year, start_month=1, end_month=1):
+    ym_start= 12*start_year + start_month - 1
+    ym_end= 12*end_year + end_month - 1
+    for ym in range( ym_start, ym_end, 3):
+        y, m = divmod( ym, 12 )
+        yield y, m+1
+
+def step_thru_months(start_yr, end_yr, start_month=1, end_month=1):
+    """ produce an iterator of pairs of times, each one month apart. """
+    for ((y1,m1), (y2,m2)) in pairwise_iter(month_year_iter(start_yr, end_yr)):
+        yield datetime(year=y1,month=m1,day=1), datetime(year=y2,month=m2,day=1)
+
+def step_thru_qtrs(start_yr, end_yr, start_month=1, end_month=1):
+    """ produce an iterator of pairs of times, each one month apart. """
+    for ((y1,m1), (y2,m2)) in pairwise_iter(qtr_year_iter(
+            start_yr, end_yr, start_month, end_month
+    )):
+        yield datetime(year=y1,month=m1,day=1), datetime(year=y2,month=m2,day=1)
