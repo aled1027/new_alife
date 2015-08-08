@@ -1,5 +1,6 @@
 # Measure the Generalized Price Equation terms for all of our traits and trait types for arbitrary episodes of evolution.
-from alife.util.general import timer, load_obj, step_through_time, dt_as_str, pickle_obj
+#from alife.util.general import timer, load_obj, step_through_time, dt_as_str, pickle_obj
+from alife.util.general import timer, load_obj, dt_as_str, pickle_obj
 from alife.util.dbutil import get_fields_unordered as get_fields
 from alife.mockdb import get_mock
 from alife.traits import _trait_info
@@ -45,7 +46,7 @@ def get_rel_num_children(population, rel_avg = True):
     containing how many children each entity has (optionally, relative)
     to the average number of children. 
     """
-    nchilds = np.array([len(doc.get('citedby', [])) for doc in population])
+    nchilds = np.array([doc.get('citedby', 0) for doc in population])
     if not rel_avg:
         return nchilds
     else:
@@ -59,7 +60,7 @@ def get_rel_num_parents(population, rel_avg = True):
     containing how many parents each entity has (optionally, relative)
     to the average number of parents. 
     """
-    nparents = np.array([len(doc.get('rawcites', [])) for doc in population])
+    nparents = np.array([doc.get('rawcites', 0) for doc in population])
     if not rel_avg:
         return nparents
     else:
