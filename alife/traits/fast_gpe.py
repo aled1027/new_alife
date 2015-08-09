@@ -2,6 +2,8 @@
 import numpy as np
 import multiprocessing as mp
 import cProfile
+import csv
+import time
 from datetime import datetime
 from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str
@@ -170,27 +172,38 @@ def run_gpe_multithreaded(db, trait_type, traits, init_year, end_year, init_mont
     for trait in traits:
         workQueue.put(TemporalGPE(trait_type, trait, init_pop))
     returnQueue = mp.Queue()
+    current_time = datetime.now()
     for start_year, start_month in qtr_year_iter(init_year, end_year):
         # at each timestep, have threads go after a work queue with gpe updates
         start_date = datetime(start_year, start_month, 1)
         print "Updating GPE at time {}".format(start_date)
+        print "loading pop..."
         nxt_pop = load_pop(start_date)
         def threadFunc():
             while not workQueue.empty():
                 trait_gpe = workQueue.get()
+                print "updating for trait {}...".format(trait_gpe.trait)
                 trait_gpe.update(nxt_pop)
+                time.sleep(np.random.randint(low=1,high=6))
                 returnQueue.put(trait_gpe)
+            print "queue empty. exiting..."
         workers = []
         for i in range(mp.cpu_count()):
             p = mp.Process(target=threadFunc)
             p.start()
             workers.append(p)
+
         for worker in workers:
             worker.join()
         # add the updated gpes for this timestep to the workQueue for the nextstep.
+        print "dumping return queue onto work queue..."
         while not returnQueue.empty():
             workQueue.put(returnQueue.get())
+        nxt_time = datetime.now()
+        print "elapsed: {}".format(nxt_time - current_time)
+        current_time = nxt_time
     gpes = {}
+    print "Taking off the work queue to get return vals."
     while not workQueue.empty():
         gpe = workQueue.get()
         gpes[gpe.trait] = gpe
@@ -268,9 +281,9 @@ def main():
     tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
     docvec_traits = range(200) # each cluster is a docvec trait
     gpes_tfidf = run_gpe_multithreaded(db, 'tf-idf', tfidf_traits,
-                                       mindate.year, mindate.year+2)
+                                       mindate.year, mindate.year+1)
     gpes_docvec = run_gpe_multithreaded(db, 'w2v', docvec_traits,
-                                       mindate.year, mindate.year+2)
+                                       mindate.year, mindate.year+1)
 
     return gpes_tfidf, gpes_docvec
     
@@ -279,13 +292,21 @@ if __name__ == '__main__':
 #    olds, news = benchmark_fn()
 #    cProfile.run('benchmark_fn()')
     gpes_tfidf, gpes_docvec = main()
+    
+    # Save the computed GPE terms as python pickles.
     pickle_obj('gpes_tfidf_fast_test.p', gpes_tfidf)
     pickle_obj('gpes_docvec_fast_test.p', gpes_docvec)
 
+    # Save the computed GPE terms as csvs.
+    with open('gpes_tfidf_fast_test.csv', 'wb') as outfile:
+        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+        for trait, series in gpes_tfidf.items():
+            for step,term_list in enumerate(series):
+                writer.writerow([trait, step]+term_list)
 
-    
-
-    
-    
-
-    
+    with open('gpes_docvec_fast_test.csv', 'wb') as outfile:
+        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+        for trait, series in gpes_docvec.items():
+            for step,term_list in enumerate(series):
+                writer.writerow([trait, step]+term_list)
+        
