@@ -46,7 +46,7 @@ def get_rel_num_children(population, rel_avg = True):
     containing how many children each entity has (optionally, relative)
     to the average number of children. 
     """
-    nchilds = np.array([doc.get('citedby', 0) for doc in population])
+    nchilds = np.array([doc.get('n_citedby', 0) for doc in population])
     if not rel_avg:
         return nchilds
     else:
@@ -60,7 +60,7 @@ def get_rel_num_parents(population, rel_avg = True):
     containing how many parents each entity has (optionally, relative)
     to the average number of parents. 
     """
-    nparents = np.array([doc.get('rawcites', 0) for doc in population])
+    nparents = np.array([doc.get('n_rawcites', 0) for doc in population])
     if not rel_avg:
         return nparents
     else:

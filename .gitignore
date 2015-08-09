@@ -7,7 +7,7 @@
 *.svmlight
 *.index
 *html
-precomputed_pops
+precomputed_pops*
 test_output
 nohup.out
 figures
