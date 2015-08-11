@@ -3,6 +3,7 @@
 from itertools import islice, izip, tee
 from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date. 
 from datetime import datetime, timedelta
+import multiprocessing as mp
 import cPickle
 import numpy as np
 import time
@@ -147,3 +148,57 @@ def step_thru_qtrs(start_yr, end_yr, start_month=1, end_month=1):
             start_yr, end_yr, start_month, end_month
     )):
         yield datetime(year=y1,month=m1,day=1), datetime(year=y2,month=m2,day=1)
+
+# Parallel map-like function, thanks to stackoverflow. Link below.
+# http://stackoverflow.com/questions/3288595/multiprocessing-using-pool-map-on-a-function-defined-in-a-class
+def _fun(f,q_in,q_out):
+    while True:
+        i,x = q_in.get()
+        if i is None:
+            break
+        q_out.put((i,f(x)))
+
+def _fun_verbose(f,q_in,q_out):
+    n_processed = 0
+    while True:
+        i,x = q_in.get()
+        if i is None:
+            break
+        n_processed += 1
+        q_out.put((i,f(x)))
+    print "processed {} items.".format(n_processed)
+
+def parmap(f, X, nprocs = mp.cpu_count()-1):
+    q_in   = mp.Queue(1)
+    q_out  = mp.Queue()
+
+    proc = [mp.Process(target=_fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
+    for p in proc:
+        p.daemon = True
+        p.start()
+
+    sent = [q_in.put((i,x)) for i,x in enumerate(X)]
+    [q_in.put((None,None)) for _ in range(nprocs)]
+    res = [q_out.get() for _ in range(len(sent))]
+
+    [p.join() for p in proc]
+
+    return [x for i,x in sorted(res)]
+
+def parmap_verbose(f, X, nprocs = mp.cpu_count()-1):
+    q_in   = mp.Queue(1)
+    q_out  = mp.Queue()
+
+    proc = [mp.Process(target=_fun_verbose,args=(f,q_in,q_out)) for _ in range(nprocs)]
+    for p in proc:
+        p.daemon = True
+        p.start()
+
+    sent = [q_in.put((i,x)) for i,x in enumerate(X)]
+    [q_in.put((None,None)) for _ in range(nprocs)]
+    res = [q_out.get() for _ in range(len(sent))]
+
+    [p.join() for p in proc]
+
+    return [x for i,x in sorted(res)]
+
