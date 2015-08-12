@@ -9,9 +9,10 @@ from alife.util.general import load_obj, qtr_year_iter
 
 db = MongoClient().patents
 mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
-maxdate = datetime(year=mindate.year+4,month=1,day=1)
+maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+maxdate_test = datetime(year=mindate.year+4,month=1,day=1)
 
-def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True):
+def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True, maxdate = maxdate):
     """
     gpe_data is a dict {trait: [[t1,t2,t3,tot],...]} which maps traits
     to a list of four tuples, where gpe_data[trait]_i is the four price equation 
@@ -24,8 +25,37 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True):
         [datetime(yr, month, 1) for yr, month in qtr_year_iter(mindate.year,maxdate.year)]
     )
     traits, serieses = zip(*gpe_data.items())
+    
     if per_term:
-        batch_size = 8
+        scheme = discrete_color_scheme(n=n_traits)
+        colormap = {t:scheme[i] for i,t in enumerate(traits)}
+        print "making per term plots..."
+        f, (ax1, ax2, ax3, ax4) = plt.subplots(4,1,sharex=True)
+        ax1.set_ylabel('GPE Term 1')
+        ax1.set_title('Differential Fitness')
+        ax2.set_ylabel('GPE Term 2')
+        ax2.set_title('Differential Mutation')
+        ax3.set_ylabel('GPE Term 3')
+        ax3.set_title('Differential Convergence')
+        ax4.set_ylabel('Total')
+        ax4.set_title('Total Change')
+        f.set_size_inches(20.5, 20.5)
+        for trait,series in zip(traits, serieses):
+            t1s,t2s,t3s,tots = zip(*series)
+            ax2.plot_date(dates, t2s, label=trait, fmt='-',color= colormap[trait])
+            ax2.axhline(linewidth=0.1,y=0, color='black')
+            ax3.plot_date(dates, t3s, label=trait, fmt='-',color= colormap[trait])
+            ax3.axhline(linewidth=0.1,y=0, color='black')
+            ax4.plot_date(dates, tots, label=trait, fmt='-',color= colormap[trait])
+            ax4.axhline(linewidth=0.1,y=0, color='black')
+            ax1.plot_date(dates, t1s, label=trait, fmt='-', color= colormap[trait])
+            ax1.axhline(linewidth=0.1,y=0, color='black')
+        lgd = plt.legend(bbox_to_anchor=(.5,-0.1, .5, -0.1), loc=9,
+                         ncol=4, mode='expand', borderaxespad=0.)
+        plt.savefig(out_dir+'gpes_by_term_full_{}.pdf'.format('docvec'), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+        # Now one for batches.
+        batch_size = 12
         n_batches = (len(traits)/batch_size)+1
         for i in range(n_batches):
             scheme = discrete_color_scheme(n=batch_size)
@@ -53,7 +83,7 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True):
                 ax1.axhline(linewidth=0.1,y=0, color='black')
             lgd = plt.legend(bbox_to_anchor=(.5,-0.1, .5, -0.1), loc=9,
                              ncol=2, mode='expand', borderaxespad=0.)
-            plt.savefig(out_dir+'gpes_by_term_batch_{}.pdf'.format(i), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.savefig(out_dir+'gpes_by_term_batch_{}_{}.pdf'.format(i, 'docvec'), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
     if per_trait:
         print "making per trait plots..."
@@ -72,26 +102,25 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True):
             plt.title('GPE over time for trait {}'.format(trait))
             plt.legend(loc='upper right')
             plt.savefig(out_dir+'gpe_{}.pdf'.format(trait), dpi=100)
-
-
    
 def test():
     gpes = load_obj('gpes_tfidf_fast_test.p')
-    plot_gpe(gpes)
+    plot_gpe(gpes, maxdate = maxdate_test)
 
-def main():
-    pass
-#    print "loading tfidf gpes..."
-#    gpes_tfidf = load_obj('gpes_tfidf_fast.p')
-#    print "loading docvec gpes..."
-#    gpes_docvec = load_obj('gpes_docvec_fast.p')
-#    print "plotting tfidf gpes..."
-#    plot_gpe(gpes_tfidf)
-#    print "plotting docvec gpes..."
-#    plot_gpe(gpes_docvec)
+def main_tfidf():
+    print "loading tfidf gpes..."
+    gpes_tfidf = load_obj('gpes_tfidf_fast.p')
+    print "plotting tfidf gpes..."
+    plot_gpe(gpes_tfidf)
+
+def main_docvec():
+    print "loading docvec gpes..."
+    gpes_docvec = load_obj('gpes_docvec_fast.p')
+    print "plotting docvec gpes..."
+    plot_gpe(gpes_docvec)
 
 if __name__ == '__main__':
-    test()
+    main_docvec()
     
         
 

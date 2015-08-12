@@ -17,7 +17,7 @@ from alife.traits.gpe import compute_gpe
 # are stored. 
 _logfn = 'fast_gpe.log'
 _log_format = '%(asctime)s : %(levelname)s : %(message)s'
-logging.basicConfig(filename = log_fn, format= log_format, level=logging.INFO)
+logging.basicConfig(filename = _logfn, format= _log_format, level=logging.INFO)
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs'
 
