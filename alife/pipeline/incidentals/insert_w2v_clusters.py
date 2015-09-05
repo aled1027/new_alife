@@ -1,5 +1,6 @@
 # Inserts a field for every document containing their cluster strengths (in decreasing order of similarity). 
 
+import sys
 from pymongo import MongoClient
 from alife.util import model_loader
 from alife.txtmine.w2v import cluster_distances
@@ -10,28 +11,39 @@ def test(n_docs = 100):
     db = MongoClient().patents
     w2v,kmeans = model_loader(300,200)
     def part_func(doc):
-        return {'$set': {'wordvec_clusters': cluster_distances(db, doc['_id'], w2v,kmeans)}}
-    for doc in db.traits.find({'doc_vec': {'$exists': True, '$nin': [[0 for _ in range(300)]]}, 'top_tf-idf': {'$nin': [[]]}}).limit(n_docs):
+        try:
+            return {'$set': {'wordvec_clusters': cluster_distances(db, doc['_id'], w2v,kmeans)}}
+        except:
+            return {'$set': {'wordvec_clusters': []}}
+    for doc in db.traits.find().limit(n_docs):
         pprint(part_func(doc))
-#        db.traits.update({'_id': doc['_id']}, part_func(doc))
-#    return db
 
 def main():
     db = MongoClient().patents
     w2v,kmeans = model_loader(300,200)
     def part_func(doc):
-        return {'$set': {'wordvec_clusters': cluster_distances(db, doc['_id'], w2v,kmeans)}}
+        try:
+            return {'$set': {'wordvec_clusters': cluster_distances(db, doc['_id'], w2v,kmeans)}}
+        except:
+            return {'$set': {'wordvec_clusters': []}}
     parallelMap(
         part_func,
         in_collection = db.traits,
         out_collection = db.traits,
         findArgs = {
-            'spec': {'doc_vec': {'$exists': True, '$nin': [[0 for _ in range(300)]]}, 'top_tf-idf': {'$nin': [[]]}},
-            'fields': {'_id': 1}
+            'spec': {}, 'fields': {}
         },
         updateFreq=500,
         bSize=1000
     )
     
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) != 2:
+        exit("Usage: {} <'test' or 'run'>")
+    if sys.argv[1] == 'test':
+        test()
+    elif sys.argv[1]  == 'run':
+        main()
+    else:
+        exit("Usage: {} <'test' or 'run'>")
+

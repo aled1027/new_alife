@@ -1,4 +1,8 @@
-# Compute the GPE quickly. I.e. not many weeks. 
+"""
+Routines for computing the GPE over time, quickly. Does so by iteratively computing covariance. 
+"""
+
+
 import numpy as np
 import multiprocessing as mp
 import cProfile
@@ -11,6 +15,7 @@ from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
 from alife.util.general import parmap
 from alife.traits import _trait_info
+from alife.traits.determine_traits import traitsample, almostall
 from alife.traits.gpe import compute_gpe
 
 # the full path to the directory where the precomputed populations 
@@ -183,23 +188,28 @@ def main():
     db = MongoClient().patents
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
-    tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
-    tfidf_subset = np.random.choice(tfidf_traits, size=10)
+    tfidf_traits = almostall()
+#    tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
+ #   tfidf_traits += traitsample(n=1000)
     docvec_traits = range(200) # each cluster is a docvec trait
-    docvec_subset = np.random.choice(docvec_traits, size=10)
     logging.info("starting with tfidf...")
     gpes_tfidf = run_gpe_parmap(db, 'tf-idf', tfidf_traits,
                                        mindate.year, maxdate.year)
-    logging.info("done. pickling...")
-    pickle_obj('gpes_tfidf_fast.p', gpes_tfidf)
-    logging.info("saving as csv...")
+
+    pickle_fn = 'gpes_tfidf_almostall_traits.p'
+    logging.info("done. pickling in {}...".format(pickle_fn))
+    pickle_obj(pickle_fn, gpes_tfidf)
+    csv_fn = 'gpes_tfidf_almostall_traits.csv'
+    logging.info("saving as csv in {}...".format(csv_fn))
     # Save the computed GPE terms as csvs.
-    with open('gpes_tfidf_fast.csv', 'wb') as outfile:
+    with open(csv_fn, 'wb') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
         for trait, series in gpes_tfidf.items():
             for step,term_list in enumerate(series):
                 writer.writerow([trait, step]+list(term_list))
+
+
     logging.info("now for docvec...")
     gpes_docvec = run_gpe_parmap(db, 'w2v', docvec_traits,
                                  mindate.year, maxdate.year)
@@ -217,9 +227,8 @@ def main():
                 writer.writerow([trait, step]+list(term_list))
     return gpes_tfidf, gpes_docvec
     
-# Test
 if __name__ == '__main__':
-    logging.info("Getting gpe terms for tfidf and doc2vec...")
+    logging.info("Getting gpe terms for all tfidf stems which occur 10 times or more.")
     main()
     
         

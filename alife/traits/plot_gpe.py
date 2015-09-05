@@ -1,6 +1,7 @@
 # Plot the GPE results. 
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 from matplotlib.dates import date2num
@@ -29,7 +30,7 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True, maxdate 
     if per_term:
         scheme = discrete_color_scheme(n=n_traits)
         colormap = {t:scheme[i] for i,t in enumerate(traits)}
-        print "making per term plots..."
+        print "making per term full plot..."
         f, (ax1, ax2, ax3, ax4) = plt.subplots(4,1,sharex=True)
         ax1.set_ylabel('GPE Term 1')
         ax1.set_title('Differential Fitness')
@@ -50,9 +51,12 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True, maxdate 
             ax4.axhline(linewidth=0.1,y=0, color='black')
             ax1.plot_date(dates, t1s, label=trait, fmt='-', color= colormap[trait])
             ax1.axhline(linewidth=0.1,y=0, color='black')
-        lgd = plt.legend(bbox_to_anchor=(.5,-0.1, .5, -0.1), loc=9,
-                         ncol=4, mode='expand', borderaxespad=0.)
-        plt.savefig(out_dir+'gpes_by_term_full_{}.pdf'.format('docvec'), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if n_traits <= 100:
+            lgd = plt.legend(bbox_to_anchor=(.5,-0.1, .5, -0.1), loc=9,
+                             ncol=4, mode='expand', borderaxespad=0.)
+            plt.savefig(out_dir+'gpes_by_term_full_{}.pdf'.format('onek_tfidf'), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        else:
+            plt.savefig(out_dir+'gpes_by_term_full_{}.pdf'.format('onek_tfidf'), dpi=200)
 
         # Now one for batches.
         batch_size = 12
@@ -60,7 +64,7 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True, maxdate 
         for i in range(n_batches):
             scheme = discrete_color_scheme(n=batch_size)
             colormap = {t:scheme[i] for i,t in enumerate(traits[i*batch_size:(i+1)*batch_size])}
-            print "making per term plots..."
+            print "making per term batch plots..."
             f, (ax1, ax2, ax3, ax4) = plt.subplots(4,1,sharex=True)
             ax1.set_ylabel('GPE Term 1')
             ax1.set_title('Differential Fitness')
@@ -120,7 +124,19 @@ def main_docvec():
     plot_gpe(gpes_docvec)
 
 if __name__ == '__main__':
-    main_docvec()
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python {} <'docvec' or 'tfidf' or path to gpe_data pickled dictionary.>".format(sys.argv[0]))
+    data = sys.argv[1]
+    if data == 'docvec':
+        main_docvec()
+    elif data == 'tfidf':
+        main_tfidf()
+    else:
+        print "loading data from file {}...".format(data)
+        gpe_data = load_obj(data)
+        print "building plots..."
+        plot_gpe(gpe_data)
+
     
         
 

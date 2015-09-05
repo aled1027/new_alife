@@ -6,29 +6,43 @@ from pprint import pprint
 from alife.util.general import pickle_obj, pairwise_iter
 from alife.util.general import dt_as_str, string_to_dt
 from alife.util.general import step_thru_time, step_thru_months, step_thru_qtrs 
+from matplotlib import pyplot as plt
 
 _test_outdir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_test'
-_qtr_outdir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs'
+_qtr_outdir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_fix'
 _month_outdir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_months'
+
+def len_or_0(x):
+    if x is None:
+        return 0
+    else:
+        return len(x)
 
 def get_new_descendants(db, time_0, time_1, limit = None):
     """ Return all patents that fall between time_0 and time_1. """
     fields = ['rawcites', 'citedby', 'top_tf-idf', 'wordvec_clusters']
-    nils = [[] for _ in fields] # yep, the nil value is the empty list. 
+    nils = [None, None, [], []]
+#    nils = [[] for _ in fields] # yep, the nil value is the empty list. NO! Not for citedby. Some patents have no citedby. 
     projection = {field:1 for field in fields}
     if limit is None or limit <= 0:
         limit = -1
     enforcefunc = lambda x: all(
         x.get(field,nil) != nil for field,nil in zip(fields,nils)
     )
-    mapfunc = lambda x: {('n_'+k if k in ['rawcites', 'citedby'] else k):(len(v) if k in ['rawcites', 'citedby'] else v) for (k,v) in x.items()}
+    mapfunc = lambda x: {('n_'+k if k in ['rawcites', 'citedby'] else k):(len_or_0(v) if k in ['rawcites', 'citedby'] else v) for (k,v) in x.items()}
     descendants = (mapfunc(d) for d in db.traits.find({'isd': {'$gte': time_0, '$lt': time_1}}, projection).limit(limit) if enforcefunc(d))
     return descendants
 
 def dump_descendants_over_time(db, time_pairs, outdir, limit = None, debug = True):
+    # also returns a histogram of pop sizes. 
+    times = []
+    popsizes = []
     for (time_0, time_1) in time_pairs:
         new_descendants = list(get_new_descendants(db, time_0, time_1, limit))
         precompute_doc = {'start': time_0, 'descendants': new_descendants}
+        print "number of descendants at time {}: {}".format(time_0, len(new_descendants))
+        times.append(time_0)
+        popsizes.append(len(new_descendants))
         if debug:
             precompute_doc['descendants'] = len(new_descendants)
             pprint(precompute_doc)
@@ -36,6 +50,7 @@ def dump_descendants_over_time(db, time_pairs, outdir, limit = None, debug = Tru
             popfn = '/'.join([outdir, dt_as_str(time_0)+'.p'])
             print "pickling population for time {} as {}".format(time_0, popfn)
             pickle_obj(popfn, precompute_doc)
+    return times, popsizes
 
 def test(lim=1000):
     db = MongoClient().patents
@@ -57,7 +72,14 @@ def main():
     start_year, start_month = start_date.year, start_date.month
     end_year, end_month = end_date.year, end_date.month
     time_pairs = step_thru_qtrs(start_year, end_year, start_month, end_month)
-    dump_descendants_over_time(db, time_pairs, outdir, limit=5000000, debug=False)
+    times, sizes = dump_descendants_over_time(db, time_pairs, outdir, limit=5000000, debug=False)
+    f = plt.figure()
+    f.set_size_inches(20.5, 20.5)
+    plt.plot_date(times, sizes)
+    plt.xlabel('Time')
+    plt.ylabel('Pop Size')
+    plt.title('Pop Sizes Per Quarter. Total pats: {}'.format(sum(sizes)))
+    plt.savefig('popsizes_over_time.pdf', dpi=100)
 
 if __name__ == '__main__':
     main()

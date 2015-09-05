@@ -26,14 +26,6 @@ _names,_pnos = zip(*_friendly_patents)
 def _dist(v1,v2):
     return np.dot(matutils.unitvec(v1), matutils.unitvec(v2))
 
-def load_w2v(filename):
-    #Loads a word2vec model stored at the given location.
-    return models.word2vec.Word2Vec.load(filename)
-
-def load_kmeans(filename):
-    # Loads a kmeans model stored at the given location.
-    return joblib.load(filename)
-
 def parse_clusters(kmeans, w2v, n_get = 50, n_try = 20, stemmeq=True):
     """
     parses a kmeans model by returning the closest word vectors. 
@@ -64,29 +56,41 @@ def parse_clusters(kmeans, w2v, n_get = 50, n_try = 20, stemmeq=True):
 def tfidf_weighted_avg(pno, w2v_model, db):
     """
     computes the tfidf-weighted average representation of a doc 
-    in a given word2vec model.
-    This is poorly implemented in that it makes two database queries. Ugh. 
+    in a given word2vec model. #TODO: write this in a way that doesn't
+    make two database queries.
     """
     text = db.pat_text.find_one({'_id': pno}).get('patText', '')
     if text == '':
         raise RuntimeError('doc has no text.')
+    # words is a list of words in the text. 
     words = _tokenizer.tokenize(text)    
     stemmed_words = [stemmer(word) for word in words]
     try:
+        # bow containts tfidf stats for each word in the doc. 
         bow = db.patns.find_one({'pno': pno}).get('text', {})
     except: 
         raise RuntimeError("No patent {} in {}".format(pno, db.patns))
-#    print bow
+    # tfidfs for each word. Lines up with words and stemmed_words. 0 indicates term does not occur.
     tfidfs = [bow.get(stem,{}).get('tf-idf',0) for stem in stemmed_words]
+
+    # We don't want any zero vectors in the db. 
+    if all(x == 0 for x in tfidfs) or len(tfidfs) == 0:
+        return []
+
     def getvec(word,model):
         try:
             return model[word]
         except:
             return np.zeros(len(model['dna']))
+
     vecs = [getvec(word,w2v_model) for word in words]
     weighted_vecs = np.array([vec*tfidf for (vec,tfidf) in zip(vecs,tfidfs)])
     assert(len(tfidfs) == len(words) == len(stemmed_words) == len(vecs) == len(weighted_vecs))
-    return 1./len(words)*np.sum(weighted_vecs, axis=0)
+    docvec = 1./len(words)*np.sum(weighted_vecs, axis=0)
+    if all(x == 0 for x in docvec):
+        return []
+    else:
+        return docvec
 
 def distances_from(v1, other_vs):
     """
@@ -95,12 +99,8 @@ def distances_from(v1, other_vs):
     euclidean distance.     
     """
     
+    assert(len(v1) == len(other_vs))
     return [_dist(v1,v2) for v2 in other_vs]
-#    if cosine:
-#        return [cosine_dist(v1,v2) for v2 in other_vs]
-#    else:
-#        return [euclidean_dist(v1,v2) for v2 in other_vs]
-    
     
 def cluster_distances(db, pno, w2v_model, cluster_model, srtd = True):
     """
@@ -108,7 +108,13 @@ def cluster_distances(db, pno, w2v_model, cluster_model, srtd = True):
     patent with the given number in the w2v_model and each of the 
     cluster centers in the cluster_model. 
     """
-    vec_representation = tfidf_weighted_avg(pno, w2v_model, db)
+
+    try:
+        docvec = np.array(db.traits.find_one({'_id': pno}).get('doc_vec', []))
+    except:
+        docvec = np.array(tfidf_weighted_avg(pno, w2v_model, db))
+    if docvec == [] or docvec is None:
+        vec_representation = tfidf_weighted_avg(pno, w2v_model, db)
     dists =  distances_from(vec_representation, cluster_model.cluster_centers_)
     if srtd:
         return sorted(enumerate(dists), key = lambda x: x[1], reverse=True)
