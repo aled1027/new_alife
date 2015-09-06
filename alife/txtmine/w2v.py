@@ -24,6 +24,7 @@ _friendly_patents = [('zeolites', 4061724), ('semiconductors', 4064521),
 _names,_pnos = zip(*_friendly_patents)
 
 def _dist(v1,v2):
+    assert(len(v1) == len(v2))
     return np.dot(matutils.unitvec(v1), matutils.unitvec(v2))
 
 def parse_clusters(kmeans, w2v, n_get = 50, n_try = 20, stemmeq=True):
@@ -98,8 +99,7 @@ def distances_from(v1, other_vs):
     If cosine is true, use the cosine distance rather than the 
     euclidean distance.     
     """
-    
-    assert(len(v1) == len(other_vs))
+
     return [_dist(v1,v2) for v2 in other_vs]
     
 def cluster_distances(db, pno, w2v_model, cluster_model, srtd = True):
@@ -114,8 +114,8 @@ def cluster_distances(db, pno, w2v_model, cluster_model, srtd = True):
     except:
         docvec = np.array(tfidf_weighted_avg(pno, w2v_model, db))
     if docvec == [] or docvec is None:
-        vec_representation = tfidf_weighted_avg(pno, w2v_model, db)
-    dists =  distances_from(vec_representation, cluster_model.cluster_centers_)
+        docvec = tfidf_weighted_avg(pno, w2v_model, db)
+    dists =  distances_from(docvec, cluster_model.cluster_centers_)
     if srtd:
         return sorted(enumerate(dists), key = lambda x: x[1], reverse=True)
     else:

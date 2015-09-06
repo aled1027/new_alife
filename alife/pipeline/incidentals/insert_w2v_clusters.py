@@ -41,7 +41,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         exit("Usage: {} <'test' or 'run'>")
     if sys.argv[1] == 'test':
-        test()
+        test(100000)
     elif sys.argv[1]  == 'run':
         main()
     else:
