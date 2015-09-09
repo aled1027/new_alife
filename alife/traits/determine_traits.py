@@ -22,6 +22,13 @@ def middle_of_dist_freq(dfs, low_cutoff_freq, high_cutoff_freq):
     """ Filters the document frequency list (assumed to be sorted). By keeping the middle of the distribution by doc freq cutoff."""
     return [x for x in dfs if low_cutoff_freq < x[1]< high_cutoff_freq]
 
+def freq_prop_sample(n):
+    dfs = _load_df()
+    subset = [x for x in dfs if 10 < x[1]]
+    traits,freqs = zip(*subset)
+    probs = map(lambda x: float(x)/np.sum(freqs), freqs)
+    return list(np.random.choice(traits, p=probs,size=(n,)))
+
 def almostall():
     dfs = _load_df()
-    return [x for x in dfs if 10 < x[1]]
+    return [x[0] for x in dfs if 10 < x[1]]

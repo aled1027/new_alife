@@ -15,7 +15,7 @@ from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
 from alife.util.general import parmap
 from alife.traits import _trait_info
-from alife.traits.determine_traits import almostall
+from alife.traits.determine_traits import almostall, freq_prop_sample
 
 # the full path to the directory where the precomputed populations 
 # are stored. 
@@ -24,6 +24,19 @@ _log_format = '%(asctime)s : %(levelname)s : %(message)s'
 logging.basicConfig(filename = _logfn, format= _log_format, level=logging.INFO)
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_fix'
+_interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
+                             'semiconductor', 'softwar', 'batteri', 'crypto',
+                             'video', 'fluroesc', 'diode','prosthet',
+                             'network', 'cancer', 'neural',
+                             'processor', 'smart', 'sequenc', 'jet', 'droplet', 
+                             'graft', 'link', 'tape', 'film','liquid','ribonucleas']
+
+_uninteresting_tfidf_traits = ['results','consists','adjustment',
+                               'layers','increase','aligned','zone',
+                               'include','indicating','applied',
+                               'connects','condition','joined','large',
+                               'small','path']
+_tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
 
 # helpers
 def load_pop(start_date):
@@ -150,7 +163,8 @@ def run_gpe_parmap(db, trait_type, traits, init_year, end_year, init_month=1, en
     Runs the GPE over time for the given traits and time steps. At each timestep, the traits are updated via a parallel pool map function.
     """
     init_pop = load_pop(datetime(init_year, init_month, 1))
-    gpes_list = [TemporalGPE(trait_type, trait, init_pop) for trait in traits]
+    mapfunc1 = lambda x: TemporalGPE(trait_type, x, init_pop)
+    gpes_list = parmap(mapfunc1, traits)
     current_time = datetime.now()
     for start_year, start_month in qtr_year_iter(init_year, end_year):
         # at each timestep, have threads go after a work queue with gpe updates
@@ -175,8 +189,8 @@ def main():
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 
-
-    tfidf_traits = almostall() # a function which gets all tfidf keys with document frequency greater than 10.
+    tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
+#    tfidf_traits = list(np.random.choice(almostall(), 3500))# a function which gets all tfidf keys with document frequency greater than 10.
     docvec_traits = range(200) # each cluster is a docvec trait
 
     # Runs the GPE calculation for TFIDF
