@@ -15,8 +15,7 @@ from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
 from alife.util.general import parmap
 from alife.traits import _trait_info
-from alife.traits.determine_traits import traitsample, almostall
-from alife.traits.gpe import compute_gpe
+from alife.traits.determine_traits import almostall
 
 # the full path to the directory where the precomputed populations 
 # are stored. 
@@ -24,20 +23,7 @@ _logfn = 'fast_gpe.log'
 _log_format = '%(asctime)s : %(levelname)s : %(message)s'
 logging.basicConfig(filename = _logfn, format= _log_format, level=logging.INFO)
 
-_pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs'
-
-_interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
-                             'semiconductor', 'softwar', 'batteri', 'crypto',
-                             'video', 'fluroesc', 'diode','prosthet',
-                             'network', 'cancer', 'neural',
-                             'processor', 'smart', 'sequenc', 'jet', 'droplet', 
-                             'graft', 'link', 'tape', 'film','liquid','ribonucleas']
-
-_uninteresting_tfidf_traits = ['results','consists','adjustment',
-                               'layers','increase','aligned','zone',
-                               'include','indicating','applied',
-                               'connects','condition','joined','large',
-                               'small','path']
+_pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_fix'
 
 # helpers
 def load_pop(start_date):
@@ -188,20 +174,24 @@ def main():
     db = MongoClient().patents
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
-    tfidf_traits = almostall()
-#    tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
- #   tfidf_traits += traitsample(n=1000)
+
+
+    tfidf_traits = almostall() # a function which gets all tfidf keys with document frequency greater than 10.
     docvec_traits = range(200) # each cluster is a docvec trait
+
+    # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
     gpes_tfidf = run_gpe_parmap(db, 'tf-idf', tfidf_traits,
-                                       mindate.year, maxdate.year)
-
+                                       mindate.year, maxdate.year+1)
+    
+    # Serialize the GPE results as a pickled python dictionary.
     pickle_fn = 'gpes_tfidf_almostall_traits.p'
     logging.info("done. pickling in {}...".format(pickle_fn))
     pickle_obj(pickle_fn, gpes_tfidf)
+
+    # Save the computed GPE terms as csv.
     csv_fn = 'gpes_tfidf_almostall_traits.csv'
     logging.info("saving as csv in {}...".format(csv_fn))
-    # Save the computed GPE terms as csvs.
     with open(csv_fn, 'wb') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
@@ -209,15 +199,16 @@ def main():
             for step,term_list in enumerate(series):
                 writer.writerow([trait, step]+list(term_list))
 
-
+    # Runs the GPE calculation for docvec
     logging.info("now for docvec...")
     gpes_docvec = run_gpe_parmap(db, 'w2v', docvec_traits,
-                                 mindate.year, maxdate.year)
+                                 mindate.year, maxdate.year+1)
+
+    # Serialize the GPE results as a pickled python dictionary.
     logging.info("saving as pickle...")
-    # Save the computed GPE terms as python pickles.
-    
     pickle_obj('gpes_docvec_fast.p', gpes_docvec)
     
+    # Save the computed GPE terms as csv.
     logging.info("done. saving as csv.")
     with open('gpes_docvec_fast.csv', 'wb') as outfile:
         writer = csv.writer(outfile)
@@ -225,6 +216,7 @@ def main():
         for trait, series in gpes_docvec.items():
             for step,term_list in enumerate(series):
                 writer.writerow([trait, step]+list(term_list))
+
     return gpes_tfidf, gpes_docvec
     
 if __name__ == '__main__':

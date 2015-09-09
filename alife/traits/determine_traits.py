@@ -24,4 +24,4 @@ def middle_of_dist_freq(dfs, low_cutoff_freq, high_cutoff_freq):
 
 def almostall():
     dfs = _load_df()
-    return [x for x in dfs in 10 < x[1]]
+    return [x for x in dfs if 10 < x[1]]
