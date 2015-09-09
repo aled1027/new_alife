@@ -13,7 +13,7 @@ mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1
 maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 maxdate_test = datetime(year=mindate.year+4,month=1,day=1)
 
-def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True, maxdate = maxdate):
+def plot_gpe(gpe_data, trait_type, out_dir='./', per_trait = True, per_term = True, maxdate = maxdate):
     """
     gpe_data is a dict {trait: [[t1,t2,t3,tot],...]} which maps traits
     to a list of four tuples, where gpe_data[trait]_i is the four price equation 
@@ -21,6 +21,7 @@ def plot_gpe(gpe_data, out_dir='./', per_trait = True, per_term = True, maxdate 
     Which, incidentally is q1, 1976. If per_trait, make a plot for each trait, each with all
     the terms. If per_term, make a plot for each term, each with all the traits. 
     """
+    assert(trait_type in ['tf-idf', 'wordvec_clusters'])
     n_traits = len(gpe_data)
     dates = np.array(
         [datetime(yr, month, 1) for yr, month in qtr_year_iter(mindate.year,maxdate.year)]
@@ -115,13 +116,13 @@ def main_tfidf():
     print "loading tfidf gpes..."
     gpes_tfidf = load_obj('gpes_tfidf_fast.p')
     print "plotting tfidf gpes..."
-    plot_gpe(gpes_tfidf)
+    plot_gpe(gpes_tfidf, trait_type = 'tf-idf')
 
 def main_docvec():
     print "loading docvec gpes..."
     gpes_docvec = load_obj('gpes_docvec_fast.p')
     print "plotting docvec gpes..."
-    plot_gpe(gpes_docvec)
+    plot_gpe(gpes_docvec, trait_type = 'wordvec_clusters')
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
