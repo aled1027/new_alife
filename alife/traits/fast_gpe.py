@@ -13,6 +13,7 @@ from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
 from alife.util.general import parmap
 from alife.traits import _trait_info
+from alife.traits.precompute_pops import get_anc_dec_mark, get_anc_dec_noncum
 from alife.traits.determine_traits import almostall, freq_prop_sample, _load_df
 from alife.txtmine import stemmer as stemfunc
 
@@ -254,19 +255,21 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
     """
     Runs the GPE over time for the given traits and time steps. At each timestep, the traits are updated via a parallel pool map function.
     """
-    init_pop = load_pop(datetime(init_year, init_month, 1))
     mapfunc1 = lambda x: TemporalGPE_NonCum(trait_type, x)
     gpes_list = parmap(mapfunc1, traits)
     current_time = datetime.now()
-    for start_year, start_month in qtr_year_iter(init_year, end_year):
+    for (time_0, time_1) in step_thru_qtrs(init_year, end_year, init_month, end_month):
+#    for start_year, start_month in qtr_year_iter(init_year, end_year):
         # at each timestep, have threads go after a work queue with gpe updates
         start_date = datetime(start_year, start_month, 1) # The date on which this time step begins.
         logging.info("Updating GPE at time {}".format(start_date))
         logging.info("loading pops...")
         if mark:
-            anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
+            anc_pop, desc_pop = get_anc_dec_mark(db, time_0, time_1, limit = None)
+#            anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
         else:
-            anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
+            anc_pop, desc_pop = get_anc_noncum(db, time_0, time_1, limit = None)
+#            anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
         logging.info("anc pop size: {}, desc pop size: {}".format(len(anc_pop), len(desc_pop)))
         def mapfunc(gpe_computer):
             logging.info("Updating trait {}...".format(gpe_computer.trait))
