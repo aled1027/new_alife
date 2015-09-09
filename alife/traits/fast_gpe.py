@@ -1,8 +1,6 @@
 """
 Routines for computing the GPE over time, quickly. Does so by iteratively computing covariance. 
 """
-
-
 import numpy as np
 import multiprocessing as mp
 import cProfile
@@ -24,6 +22,9 @@ _log_format = '%(asctime)s : %(levelname)s : %(message)s'
 logging.basicConfig(filename = _logfn, format= _log_format, level=logging.INFO)
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_fix'
+_noncum_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_noncum'
+_mark_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_mark'
+
 _interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
                              'semiconductor', 'softwar', 'batteri', 'crypto',
                              'video', 'fluroesc', 'diode','prosthet',
@@ -39,12 +40,30 @@ _uninteresting_tfidf_traits = ['results','consists','adjustment',
 _tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
 
 # helpers
+def _cov2(x,y):
+    """ Computes the covariance between vectors x and y, 
+    except dividing the sum of mean deviations by n rather than by n+1. 
+    This is how excel does it, but is not the 'sample covariance', 
+    the generally held best estimator for the covariance. We have this function
+    to test against Marks' implementation in excel. """
+    assert(x.shape==y.shape)
+    xbar, ybar = map(np.mean, [x,y])
+    s = np.sum([(xi-xbar)*(yi-ybar) for xi,yi in zip(x,y)])
+    return float(s)/len(x)
+
 def load_pop(start_date):
     """ Load a list of patents (dictionaries) occuring in the month following the given start_date."""
     filename = '/'.join([_pop_dir, dt_as_str(start_date)+'.p'])
     pop_dict = load_obj(filename)
     assert(start_date == pop_dict['start']) # Make sure the date we think we're loading matches the stored date.
     return pop_dict['descendants']
+
+def load_anc_dec(start_date, indir):
+    """ Load two lists of patents; ancestral and descendant poulation respectively. """
+    filename = '/'.join([indir, dt_as_str(start_date)+'.p'])
+    pop_dict = load_obj(filename)
+    assert(start_date == pop_dict['start']) # Make sure the date we think we're loading matches the stored date.
+    return pop_dict['ancestors'], pop_dict['descendants']
 
 def running_avg(xsum, N, new_xs):
     """ Update the mean, given new data, if we only know the sum and count of previous data. """
@@ -107,6 +126,7 @@ def get_traits(population, trait_type, trait):
 class TemporalGPE(object):
     """
     A class which computes the GPE for a particular trait over time. 
+    It only works if we take the number of children a patent has as fixed :/. 
     """
     def __init__(self, trait_type, trait, anc_pop):
         """
@@ -158,6 +178,40 @@ class TemporalGPE(object):
         self.anc_n_children_sum += np.sum(rel_children)
         self.i += 1
 
+class TemporalGPE_NonCum(object):
+    """ Compute the gpes over time, when handed a new ancestral population and descendant population at each timestep."""
+    def __init__(self, trait_type, trait):
+        self.trait_type = trait_type
+        self.trait = trait
+        self.gpes = []
+
+    def update(self, anc_pop, desc_pop):
+        # Get the statistics we need from the populations to compute the GPE terms.
+        anc_traits = get_traits(self.trait_type, self.trait, anc_pop)
+        desc_traits = get_traits(self.trait_type, self.trait, desc_pop)
+        anc_nchildren = np.array([x.get('n_citedby', 0) for x in anc_pop])
+        desc_nparents = np.array([x.get('n_rawcites', 0) for x in desc_pop])
+        nchildren_rel_avg = anc_children/np.mean(anc_nchildren)
+        nparents_rel_avg = desc_parents/np.mean(desc_nparents)
+        gpe_terms = compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg)
+        self.gpes.append(gpe_terms)
+
+def compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg, sample_cov = True):
+    """ compute the terms of the gpe for a single trait over a single period of evolution,
+    given vectors of ancestor trait values, descendant trait values, ancestor number of children rel. avg
+    and descendant number of parents rel avg. By default, use the unbiased sample covariance as an
+    estimate of the covariance. If sample_cov is false, use the biased estimator used by excel
+    so that it agrees with MAB's excel implementation. The difference is only a factor of (N/N-1). """
+    tot = np.mean(desc_traits) - np.mean(anc_traits)
+    if sample_cov:
+        t1 = np.cov(anc_traits, nchildren_rel_avg)[0][1]
+        t3 = np.cov(desc_traits, nparents_rel_avg)[0][1]
+    else:
+        t1 = _cov2(anc_traits, nchildren_rel_avg)
+        t3 = _cov2(desc_traits, nparents_rel_avg)
+    t2 = tot + t3 - t1
+    return t1,t2,t3,tot
+
 def run_gpe_parmap(db, trait_type, traits, init_year, end_year, init_month=1, end_month=1, debug=True):
     """
     Runs the GPE over time for the given traits and time steps. At each timestep, the traits are updated via a parallel pool map function.
@@ -184,13 +238,41 @@ def run_gpe_parmap(db, trait_type, traits, init_year, end_year, init_month=1, en
     gpes = {computer.trait: computer.gpes for computer in gpes_list}
     return gpes
 
-def main():
+def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_month=1, end_month=1, mark=False):
+    """
+    Runs the GPE over time for the given traits and time steps. At each timestep, the traits are updated via a parallel pool map function.
+    """
+    init_pop = load_pop(datetime(init_year, init_month, 1))
+    mapfunc1 = lambda x: TemporalGPE_NonCum(trait_type, x)
+    gpes_list = parmap(mapfunc1, traits)
+    current_time = datetime.now()
+    for start_year, start_month in qtr_year_iter(init_year, end_year):
+        # at each timestep, have threads go after a work queue with gpe updates
+        start_date = datetime(start_year, start_month, 1) # The date on which this time step begins.
+        logging.info("Updating GPE at time {}".format(start_date))
+        logging.info("loading pops...")
+        if mark:
+            anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
+        else:
+            anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
+        logging.info("anc pop size: {}, desc pop size: {}".format(len(anc_pop), len(desc_pop)))
+        def mapfunc(gpe_computer):
+            logging.info("Updating trait {}...".format(gpe_computer.trait))
+            gpe_computer.update(anc_pop, desc_pop)
+            return gpe_computer
+        gpes_list = parmap(mapfunc, gpes_list)
+        nxt_time = datetime.now()
+        logging.info("elapsed: {}".format(nxt_time - current_time))
+        current_time = nxt_time
+    gpes = {computer.trait: computer.gpes for computer in gpes_list}
+    return gpes
+
+def main_static():
     db = MongoClient().patents
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 
     tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
-#    tfidf_traits = list(np.random.choice(almostall(), 3500))# a function which gets all tfidf keys with document frequency greater than 10.
     docvec_traits = range(200) # each cluster is a docvec trait
 
     # Runs the GPE calculation for TFIDF
@@ -232,9 +314,71 @@ def main():
                 writer.writerow([trait, step]+list(term_list))
 
     return gpes_tfidf, gpes_docvec
+
+def main_noncum(mark=False):
+    db = MongoClient().patents
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    
+    tfidf_traits = _tfidf_traits
+ #   tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
+ 
+    docvec_traits = range(200) # each cluster is a docvec trait
+
+    # Runs the GPE calculation for TFIDF
+    logging.info("starting with tfidf...")
+    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits,
+                                       mindate.year, maxdate.year+1, mark=mark)
+    
+    # Serialize the GPE results as a pickled python dictionary.
+    pickle_fn = 'gpes_tfidf_almostall_traits.p'
+    logging.info("done. pickling in {}...".format(pickle_fn))
+    pickle_obj(pickle_fn, gpes_tfidf)
+
+    # Save the computed GPE terms as csv.
+    csv_fn = 'gpes_tfidf_almostall_traits.csv'
+    logging.info("saving as csv in {}...".format(csv_fn))
+    with open(csv_fn, 'wb') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+        for trait, series in gpes_tfidf.items():
+            for step,term_list in enumerate(series):
+                writer.writerow([trait, step]+list(term_list))
+
+    # Runs the GPE calculation for docvec
+    logging.info("now for docvec...")
+    gpes_docvec = run_gpe_parmap_noncum(db, 'w2v', docvec_traits,
+                                 mindate.year, maxdate.year+1, mark=mark)
+
+    # Serialize the GPE results as a pickled python dictionary.
+    logging.info("saving as pickle...")
+    pickle_obj('gpes_docvec_fast.p', gpes_docvec)
+    
+    # Save the computed GPE terms as csv.
+    logging.info("done. saving as csv.")
+    with open('gpes_docvec_fast.csv', 'wb') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+        for trait, series in gpes_docvec.items():
+            for step,term_list in enumerate(series):
+                writer.writerow([trait, step]+list(term_list))
+
+    return gpes_tfidf, gpes_docvec
     
 if __name__ == '__main__':
-    logging.info("Getting gpe terms for all tfidf stems which occur 10 times or more.")
-    main()
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'>".format(sys.argv[0]))
+    if sys.argv[1] == 'STATIC':
+        logging.info('running static gpe on patents in {}'.format())
+        main_static()
+    elif sys.argv[1] == 'NONCUM':
+        logging.info('running noncum gpe on patents in {}'.format())
+        main_noncum(mark=False)
+    elif sys.argv[1] == 'MARK':
+        logging.info('running mark style gpe on patents in {}'.format())
+        main_noncum(mark=True)
+    else:
+        sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'>".format(sys.argv[0]))
+
     
         

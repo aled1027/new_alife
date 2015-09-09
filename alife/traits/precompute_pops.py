@@ -57,11 +57,11 @@ def get_anc_dec_noncum(db, time_0, time_1, limit = None):
     ancestors = [d for d in db.traits.find({'isd': {'$lt': time_0}}, projection).limit(limit) if enforcefunc(d)]
     descendants = [d for d in db.traits.find({'isd': {'$gte': time_0, '$lt': time_1}}, projection).limit(limit) if enforcefunc(d)]
     def process_anc(anc):
-        anc['num_children'] = n_children(anc['_id'], descendants)
+        anc['n_citedby'] = n_children(anc['_id'], descendants)
             anc.pop('rawcites', None)
         return anc
     def process_doc(dec):
-        dec['n_parents'] = len(dec.get('rawcites'))
+        dec['n_rawcites'] = len(dec.get('rawcites'))
         dec.pop('rawcites', None)
             return dec
     return (process_anc(anc) for anc in ancestors), (process_dec(dec) for dec in descendants)
