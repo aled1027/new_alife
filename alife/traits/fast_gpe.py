@@ -343,7 +343,7 @@ def main_noncum(mark=False):
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
     gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits,
-                                       mindate.year, maxdate.year+1, mark=mark)
+                                       mindate.year, maxdate.year, mark=mark)
     
     # Serialize the GPE results as a pickled python dictionary.
     pickle_fn = 'gpes_tfidf_almostall_traits.p'
@@ -363,7 +363,7 @@ def main_noncum(mark=False):
     # Runs the GPE calculation for docvec
     logging.info("now for docvec...")
     gpes_docvec = run_gpe_parmap_noncum(db, 'w2v', docvec_traits,
-                                 mindate.year, maxdate.year+1, mark=mark)
+                                 mindate.year, maxdate.year, mark=mark)
 
     # Serialize the GPE results as a pickled python dictionary.
     logging.info("saving as pickle...")

@@ -25,10 +25,7 @@ def len_or_0(x):
         return len(x)
 
 def n_children(anc, descendant_pop):
-    nc =  len( set(anc.get('citedby', [])).intersection(set([x['_id'] for x in descendant_pop])) )
-    if nc != 0:
-        print nc
-    return nc
+    return len( set(anc.get('citedby', [])).intersection(set([x['_id'] for x in descendant_pop])) )
 
 def get_new_descendants(db, time_0, time_1, limit = None):
     """ Return all patents that fall between time_0 and time_1. """
