@@ -13,7 +13,8 @@ from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
 from alife.util.general import parmap
 from alife.traits import _trait_info
-from alife.traits.determine_traits import almostall, freq_prop_sample
+from alife.traits.determine_traits import almostall, freq_prop_sample, _load_df
+from alife.txtmine import stemmer as stemfunc
 
 # the full path to the directory where the precomputed populations 
 # are stored. 
@@ -25,19 +26,23 @@ _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_
 _noncum_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_noncum'
 _mark_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_mark'
 
-_interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobile',
+# be sure we are using the right traits. 
+allstems = [x[0] for x in _load_df()]
+_interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobil',
                              'semiconductor', 'softwar', 'batteri', 'crypto',
                              'video', 'fluroesc', 'diode','prosthet',
                              'network', 'cancer', 'neural',
                              'processor', 'smart', 'sequenc', 'jet', 'droplet', 
-                             'graft', 'link', 'tape', 'film','liquid','ribonucleas']
+                             'graft', 'link', 'tape', 'film','liquid','ribonucleas', 'gpu', 'gpgpu', 'cpu', 'core', 'intelligen']
 
-_uninteresting_tfidf_traits = ['results','consists','adjustment',
+_uninteresting_tfidf_traits = ['results','consists','adjustme',
                                'layers','increase','aligned','zone',
                                'include','indicating','applied',
                                'connects','condition','joined','large',
                                'small','path']
-_tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
+tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
+_tfidf_traits = [x if x in allstems else stemfunc(x) for x in tfidf_traits]
+assert(all(x in allstems for s in _tfidf_traits))
 
 # helpers
 def _cov2(x,y):
@@ -187,13 +192,20 @@ class TemporalGPE_NonCum(object):
 
     def update(self, anc_pop, desc_pop):
         # Get the statistics we need from the populations to compute the GPE terms.
-        anc_traits = get_traits(self.trait_type, self.trait, anc_pop)
-        desc_traits = get_traits(self.trait_type, self.trait, desc_pop)
+        anc_traits = get_traits(anc_pop, self.trait_type, self.trait)
+        desc_traits = get_traits(desc_pop, self.trait_type, self.trait)
         anc_nchildren = np.array([x.get('n_citedby', 0) for x in anc_pop])
         desc_nparents = np.array([x.get('n_rawcites', 0) for x in desc_pop])
-        nchildren_rel_avg = anc_children/np.mean(anc_nchildren)
-        nparents_rel_avg = desc_parents/np.mean(desc_nparents)
+        try:
+            nchildren_rel_avg = anc_nchildren/np.mean(anc_nchildren)
+        except:
+            nchildren_rel_avg = [0 for x in anc_nchildren]
+        try:
+            nparents_rel_avg = desc_nparents/np.mean(desc_nparents)
+        except:
+            nparents_rel_avg = [0 for x in desc_nparents]
         gpe_terms = compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg)
+        logging.info("trait: {}, gpe_terms: {}".format(self.trait, gpe_terms))
         self.gpes.append(gpe_terms)
 
 def compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg, sample_cov = True):
@@ -252,9 +264,9 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
         logging.info("Updating GPE at time {}".format(start_date))
         logging.info("loading pops...")
         if mark:
-            anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
-        else:
             anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
+        else:
+            anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
         logging.info("anc pop size: {}, desc pop size: {}".format(len(anc_pop), len(desc_pop)))
         def mapfunc(gpe_computer):
             logging.info("Updating trait {}...".format(gpe_computer.trait))
@@ -369,13 +381,13 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'>".format(sys.argv[0]))
     if sys.argv[1] == 'STATIC':
-        logging.info('running static gpe on patents in {}'.format())
+        logging.info('running static gpe on patents in {}'.format(_pop_dir))
         main_static()
     elif sys.argv[1] == 'NONCUM':
-        logging.info('running noncum gpe on patents in {}'.format())
+        logging.info('running noncum gpe on patents in {}'.format(_noncum_dir))
         main_noncum(mark=False)
     elif sys.argv[1] == 'MARK':
-        logging.info('running mark style gpe on patents in {}'.format())
+        logging.info('running mark style gpe on patents in {}'.format(_mark_dir))
         main_noncum(mark=True)
     else:
         sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'>".format(sys.argv[0]))
