@@ -13,7 +13,7 @@ mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1
 maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 maxdate_test = datetime(year=mindate.year+4,month=1,day=1)
 
-def plot_gpe(gpe_data, trait_type, out_dir='./', per_trait = True, per_term = True, maxdate = maxdate):
+def plot_gpe(gpe_data, trait_type, name, out_dir='./', per_trait = True, per_term = True, maxdate = maxdate):
     """
     gpe_data is a dict {trait: [[t1,t2,t3,tot],...]} which maps traits
     to a list of four tuples, where gpe_data[trait]_i is the four price equation 
@@ -21,7 +21,7 @@ def plot_gpe(gpe_data, trait_type, out_dir='./', per_trait = True, per_term = Tr
     Which, incidentally is q1, 1976. If per_trait, make a plot for each trait, each with all
     the terms. If per_term, make a plot for each term, each with all the traits. 
     """
-    assert(trait_type in ['tf-idf', 'wordvec_clusters'])
+    assert(trait_type in ['tf-idf', 'docvec'])
     n_traits = len(gpe_data)
     dates = np.array(
         [datetime(yr, month, 1) for yr, month in qtr_year_iter(mindate.year,maxdate.year)]
@@ -55,9 +55,9 @@ def plot_gpe(gpe_data, trait_type, out_dir='./', per_trait = True, per_term = Tr
         if n_traits <= 100:
             lgd = plt.legend(bbox_to_anchor=(.5,-0.1, .5, -0.1), loc=9,
                              ncol=4, mode='expand', borderaxespad=0.)
-            plt.savefig(out_dir+'gpes_by_term_full_{}.pdf'.format('onek_tfidf'), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.savefig(out_dir+'gpes_by_term_full_{}_{}.pdf'.format(trait_type, name), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
         else:
-            plt.savefig(out_dir+'gpes_by_term_full_{}.pdf'.format('onek_tfidf'), dpi=200)
+            plt.savefig(out_dir+'gpes_by_term_full_{}_{}.pdf'.format(trait_type, name), dpi=200)
 
         # Now one for batches.
         batch_size = 12
@@ -88,7 +88,7 @@ def plot_gpe(gpe_data, trait_type, out_dir='./', per_trait = True, per_term = Tr
                 ax1.axhline(linewidth=0.1,y=0, color='black')
             lgd = plt.legend(bbox_to_anchor=(.5,-0.1, .5, -0.1), loc=9,
                              ncol=2, mode='expand', borderaxespad=0.)
-            plt.savefig(out_dir+'gpes_by_term_batch_{}_{}.pdf'.format(i, 'docvec'), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.savefig(out_dir+'gpes_by_term_batch_{}_{}_{}.pdf'.format(i, trait_type, name), dpi=200, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
     if per_trait:
         print "making per trait plots..."
@@ -106,37 +106,21 @@ def plot_gpe(gpe_data, trait_type, out_dir='./', per_trait = True, per_term = Tr
             plt.ylabel('Value')
             plt.title('GPE over time for trait {}'.format(trait))
             plt.legend(loc='upper right')
-            plt.savefig(out_dir+'gpe_{}.pdf'.format(trait), dpi=100)
-   
-def test():
-    gpes = load_obj('gpes_tfidf_fast_test.p')
-    plot_gpe(gpes, maxdate = maxdate_test)
-
-def main_tfidf():
-    print "loading tfidf gpes..."
-    gpes_tfidf = load_obj('gpes_tfidf_fast.p')
-    print "plotting tfidf gpes..."
-    plot_gpe(gpes_tfidf, trait_type = 'tf-idf')
-
-def main_docvec():
-    print "loading docvec gpes..."
-    gpes_docvec = load_obj('gpes_docvec_fast.p')
-    print "plotting docvec gpes..."
-    plot_gpe(gpes_docvec, trait_type = 'wordvec_clusters')
+            plt.savefig(out_dir+'gpe_{}_{}.pdf'.format(trait, name), dpi=100)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        sys.exit("Usage: python {} <'docvec' or 'tfidf' or path to gpe_data pickled dictionary.>".format(sys.argv[0]))
-    data = sys.argv[1]
-    if data == 'docvec':
-        main_docvec()
-    elif data == 'tfidf':
-        main_tfidf()
-    else:
-        print "loading data from file {}...".format(data)
-        gpe_data = load_obj(data)
-        print "building plots..."
-        plot_gpe(gpe_data)
+    if len(sys.argv) != 4:
+        sys.exit("Usage: python {} <'docvec' or 'tfidf'>  <path to gpe_data pickled dictionary.> <name>".format(sys.argv[0]))
+    trait_type = sys.argv[1]
+    fn = sys.argv[2]
+    name = sys.argv[3]
+    try:
+        data = load_obj(fn)
+        plot_gpe(data, trait_type, name)
+    except s:
+        print s
+        sys.exit("Usage: python {} <'docvec' or 'tfidf'>  <path to gpe_data pickled dictionary.> <name>".format(sys.argv[0]))
+    
 
     
         

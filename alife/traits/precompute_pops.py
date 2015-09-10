@@ -82,9 +82,9 @@ def get_anc_dec_mark(db, time_0, time_1, limit = None):
     nils = [None, None, [], []]
     projection = {field:1 for field in fields}
     if limit is None or limit <= 0:
-        limit = -1
+        limit = db.traits.count()
     enforcefunc = lambda x: all(
-        x.get(field,nil) != nil for field,nil in zip(fields,nils)
+        x.get(field,nil) != nil for field,nil in zip(fields,nils) if x is not None
     )
     descendants = [d for d in db.traits.find({'isd': {'$gte': time_0, '$lt': time_1}}, projection).limit(limit) if enforcefunc(d)]
 
@@ -96,20 +96,18 @@ def get_anc_dec_mark(db, time_0, time_1, limit = None):
     anc_pnos, anc_childcounts = zip(*anc_child_ctr.items())
     ancestors = [db.traits.find_one({'_id': pno}, projection) for pno in anc_pnos]
     ancestors, anc_childcounts = zip(*[(a,c) for a,c in zip(ancestors,anc_childcounts) if enforcefunc(a) and a is not None])
-    del anc_childcounts
-    del anc_pnos
-
     assert(len(ancestors) == len(anc_childcounts))
+
     for a,c in zip(ancestors, anc_childcounts):
         a['n_citedby'] = c
         a.pop('rawcites', None)
         
-    def process_doc(dec):
+    def process_dec(dec):
         dec['n_rawcites'] = len(dec.get('rawcites'))
         dec.pop('rawcites', None)
         return dec
 
-    return (anc for anc in ancestors), (process_dec(dec) for dec in descendants)
+    return [anc for anc in ancestors], [process_dec(dec) for dec in descendants]
 
 def dump_descendants_over_time(db, time_pairs, outdir, limit = None, debug = True):
     # also returns a histogram of pop sizes. 

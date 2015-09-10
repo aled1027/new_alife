@@ -11,7 +11,7 @@ import logging
 from datetime import datetime
 from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
-from alife.util.general import parmap
+from alife.util.general import parmap, step_thru_qtrs
 from alife.traits import _trait_info
 from alife.traits.precompute_pops import get_anc_dec_mark, get_anc_dec_noncum
 from alife.traits.determine_traits import almostall, freq_prop_sample, _load_df
@@ -24,8 +24,6 @@ _log_format = '%(asctime)s : %(levelname)s : %(message)s'
 logging.basicConfig(filename = _logfn, format= _log_format, level=logging.INFO)
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_fix'
-_noncum_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_noncum'
-_mark_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_mark'
 
 # be sure we are using the right traits. 
 allstems = [x[0] for x in _load_df()]
@@ -261,8 +259,7 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
     for (time_0, time_1) in step_thru_qtrs(init_year, end_year, init_month, end_month):
 #    for start_year, start_month in qtr_year_iter(init_year, end_year):
         # at each timestep, have threads go after a work queue with gpe updates
-        start_date = datetime(start_year, start_month, 1) # The date on which this time step begins.
-        logging.info("Updating GPE at time {}".format(start_date))
+        logging.info("Updating GPE at time {}".format(time_0))
         logging.info("loading pops...")
         if mark:
             anc_pop, desc_pop = get_anc_dec_mark(db, time_0, time_1, limit = None)
@@ -282,7 +279,7 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
     gpes = {computer.trait: computer.gpes for computer in gpes_list}
     return gpes
 
-def main_static():
+def main_static(name):
     db = MongoClient().patents
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
@@ -293,15 +290,15 @@ def main_static():
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
     gpes_tfidf = run_gpe_parmap(db, 'tf-idf', tfidf_traits,
-                                       mindate.year, maxdate.year+1)
+                                       mindate.year, maxdate.year)
     
     # Serialize the GPE results as a pickled python dictionary.
-    pickle_fn = 'gpes_tfidf_almostall_traits.p'
+    pickle_fn = name+'gpes_tfidf_3k.p'
     logging.info("done. pickling in {}...".format(pickle_fn))
     pickle_obj(pickle_fn, gpes_tfidf)
 
     # Save the computed GPE terms as csv.
-    csv_fn = 'gpes_tfidf_almostall_traits.csv'
+    csv_fn = name+'gpes_tfidf.csv'
     logging.info("saving as csv in {}...".format(csv_fn))
     with open(csv_fn, 'wb') as outfile:
         writer = csv.writer(outfile)
@@ -313,15 +310,15 @@ def main_static():
     # Runs the GPE calculation for docvec
     logging.info("now for docvec...")
     gpes_docvec = run_gpe_parmap(db, 'w2v', docvec_traits,
-                                 mindate.year, maxdate.year+1)
+                                 mindate.year, maxdate.year)
 
     # Serialize the GPE results as a pickled python dictionary.
     logging.info("saving as pickle...")
-    pickle_obj('gpes_docvec_fast.p', gpes_docvec)
+    pickle_obj(name+'gpes_docvec.p', gpes_docvec)
     
     # Save the computed GPE terms as csv.
     logging.info("done. saving as csv.")
-    with open('gpes_docvec_fast.csv', 'wb') as outfile:
+    with open(name+'gpes_docvec.csv', 'wb') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
         for trait, series in gpes_docvec.items():
@@ -330,13 +327,13 @@ def main_static():
 
     return gpes_tfidf, gpes_docvec
 
-def main_noncum(mark=False):
+def main_noncum(name, mark=False):
     db = MongoClient().patents
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
     
-    tfidf_traits = _tfidf_traits
- #   tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
+#    tfidf_traits = _tfidf_traits
+    tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
  
     docvec_traits = range(200) # each cluster is a docvec trait
 
@@ -346,12 +343,12 @@ def main_noncum(mark=False):
                                        mindate.year, maxdate.year, mark=mark)
     
     # Serialize the GPE results as a pickled python dictionary.
-    pickle_fn = 'gpes_tfidf_almostall_traits.p'
+    pickle_fn = name+'gpes_tfidf_3k.p'
     logging.info("done. pickling in {}...".format(pickle_fn))
     pickle_obj(pickle_fn, gpes_tfidf)
 
     # Save the computed GPE terms as csv.
-    csv_fn = 'gpes_tfidf_almostall_traits.csv'
+    csv_fn = name+'gpes_tfidf_3k.csv'
     logging.info("saving as csv in {}...".format(csv_fn))
     with open(csv_fn, 'wb') as outfile:
         writer = csv.writer(outfile)
@@ -367,11 +364,11 @@ def main_noncum(mark=False):
 
     # Serialize the GPE results as a pickled python dictionary.
     logging.info("saving as pickle...")
-    pickle_obj('gpes_docvec_fast.p', gpes_docvec)
+    pickle_obj(name+'gpes_docvec.p', gpes_docvec)
     
     # Save the computed GPE terms as csv.
     logging.info("done. saving as csv.")
-    with open('gpes_docvec_fast.csv', 'wb') as outfile:
+    with open(name+'gpes_docvec.csv', 'wb') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
         for trait, series in gpes_docvec.items():
@@ -381,19 +378,20 @@ def main_noncum(mark=False):
     return gpes_tfidf, gpes_docvec
     
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'>".format(sys.argv[0]))
+    if len(sys.argv) != 3:
+        sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'> <NAME>".format(sys.argv[0]))
+    name = sys.argv[2]
     if sys.argv[1] == 'STATIC':
         logging.info('running static gpe on patents in {}'.format(_pop_dir))
-        main_static()
+        main_static(name)
     elif sys.argv[1] == 'NONCUM':
-        logging.info('running noncum gpe on patents in {}'.format(_noncum_dir))
-        main_noncum(mark=False)
+        logging.info('running noncum gpe.')
+        main_noncum(name, mark=False)
     elif sys.argv[1] == 'MARK':
-        logging.info('running mark style gpe on patents in {}'.format(_mark_dir))
-        main_noncum(mark=True)
+        logging.info('running mark style gpe.')
+        main_noncum(name, mark=True)
     else:
-        sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'>".format(sys.argv[0]))
+        sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'> <NAME>".format(sys.argv[0]))
 
     
         
