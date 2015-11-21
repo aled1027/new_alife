@@ -34,13 +34,17 @@ def test(limit=100):
 
     # put doc topics in db. 
     print "Getting doc topics..."
-    assert(len(corpus) == len(pnos))
+    try:
+        assert(len(corpus) == len(pnos))
+    except:
+        print "Corpus length: {}, pnos length: {}".format(len(corpus), len(pnos))
     db = MongoClient().patents
     def partfunc(doc):
         topics = lda[corpus[pno2id[doc['_id']]]]
         return {'$set': {'lda_topics': topics}}
-    pats_test = db.traits.find().limit(limit)
+    pats_test = list(db.traits.find().limit(limit)) + [db.traits.find_one({'_id': 4683202})]
     for p in pats_test:
+        pprint("Pno: {} below".format(p['_id']))
         pprint(partfunc(p))
     print "\nDone."
 
@@ -93,5 +97,6 @@ def main():
     )
 
 if __name__ == '__main__':
-    main()
+    test()
+    #main()
 

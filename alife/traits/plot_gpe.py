@@ -27,6 +27,7 @@ def plot_gpe(gpe_data, trait_type, name, out_dir='./', per_trait = True, per_ter
         [datetime(yr, month, 1) for yr, month in qtr_year_iter(mindate.year,maxdate.year)]
     )
     traits, serieses = zip(*gpe_data.items())
+    dates = dates[5:149] # comment out in normal usage
     
     if per_term:
         scheme = discrete_color_scheme(n=n_traits)
@@ -43,7 +44,9 @@ def plot_gpe(gpe_data, trait_type, name, out_dir='./', per_trait = True, per_ter
         ax4.set_title('Total Change')
         f.set_size_inches(20.5, 20.5)
         for trait,series in zip(traits, serieses):
-            t1s,t2s,t3s,tots = zip(*series)
+#            t1s,t2s,t3s,tots = zip(*series) 
+            t1s,t2s,t3s,tots = map(lambda x: x[5:149], zip(*series)) # use previous line in normal use.
+            print "dates length: {}, series length: {}".format(len(dates), len(t2s))
             ax2.plot_date(dates, t2s, label=trait, fmt='-',color= colormap[trait])
             ax2.axhline(linewidth=0.1,y=0, color='black')
             ax3.plot_date(dates, t3s, label=trait, fmt='-',color= colormap[trait])
@@ -77,7 +80,8 @@ def plot_gpe(gpe_data, trait_type, name, out_dir='./', per_trait = True, per_ter
             ax4.set_title('Total Change')
             f.set_size_inches(20.5, 20.5)
             for trait,series in zip(traits[i*batch_size:(i+1)*batch_size], serieses[i*batch_size:(i+1)*batch_size]):
-                t1s,t2s,t3s,tots = zip(*series)
+#                t1s,t2s,t3s,tots = zip(*series)
+                t1s,t2s,t3s,tots = map(lambda x: x[5:149], zip(*series)) # use previous line in normal use.
                 ax2.plot_date(dates, t2s, label=trait, fmt='-',color= colormap[trait])
                 ax2.axhline(linewidth=0.1,y=0, color='black')
                 ax3.plot_date(dates, t3s, label=trait, fmt='-',color= colormap[trait])
@@ -96,7 +100,8 @@ def plot_gpe(gpe_data, trait_type, name, out_dir='./', per_trait = True, per_ter
             print "making plot for trait {}".format(trait)
             f = plt.figure()
             f.set_size_inches(18.5, 10.5)
-            t1s, t2s, t3s, tots = zip(*series)
+#            t1s, t2s, t3s, tots = zip(*series)
+            t1s,t2s,t3s,tots = map(lambda x: x[5:149], zip(*series)) # use previous line in normal use.
             plt.plot_date(dates, t1s, label='diff. fitness', fmt='r-')
             plt.plot_date(dates, t2s, label='diff. mutation', fmt='g-')
             plt.plot_date(dates, t3s, label='diff. convergence', fmt='b-')
@@ -114,12 +119,9 @@ if __name__ == '__main__':
     trait_type = sys.argv[1]
     fn = sys.argv[2]
     name = sys.argv[3]
-    try:
-        data = load_obj(fn)
-        plot_gpe(data, trait_type, name)
-    except s:
-        print s
-        sys.exit("Usage: python {} <'docvec' or 'tfidf'>  <path to gpe_data pickled dictionary.> <name>".format(sys.argv[0]))
+    data = load_obj(fn)
+    plot_gpe(data, trait_type, name)
+
     
 
     
