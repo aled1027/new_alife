@@ -1,5 +1,5 @@
 """
-Routines for computing the GPE over time, quickly. Does so by iteratively computing covariance. 
+Routines for computing the GPE over time, quickly. Does so by iteratively computing covariance.
 """
 import numpy as np
 import multiprocessing as mp
@@ -11,27 +11,27 @@ import logging
 from datetime import datetime
 from pymongo import MongoClient
 from alife.util.general import qtr_year_iter, load_obj, dt_as_str, pickle_obj
-from alife.util.general import parmap, step_thru_qtrs
+from alife.util.general import parmap, step_thru_qtrs, step_thru_years
 from alife.traits import _trait_info
 from alife.traits.precompute_pops import get_anc_dec_mark, get_anc_dec_noncum
 from alife.traits.determine_traits import almostall, freq_prop_sample, _load_df
 from alife.txtmine import stemmer as stemfunc
 
-# the full path to the directory where the precomputed populations 
-# are stored. 
+# the full path to the directory where the precomputed populations
+# are stored.
 _logfn = 'fast_gpe.log'
 _log_format = '%(asctime)s : %(levelname)s : %(message)s'
 logging.basicConfig(filename = _logfn, format= _log_format, level=logging.INFO)
 
 _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_qtrs_fix'
 
-# be sure we are using the right traits. 
+# be sure we are using the right traits.
 allstems = [x[0] for x in _load_df()]
 _interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobil',
                              'semiconductor', 'softwar', 'batteri', 'crypto',
                              'video', 'fluroesc', 'diode','prosthet',
                              'network', 'cancer', 'neural',
-                             'processor', 'smart', 'sequenc', 'jet', 'droplet', 
+                             'processor', 'smart', 'sequenc', 'jet', 'droplet',
                              'graft', 'link', 'tape', 'film','liquid','ribonucleas', 'gpu', 'gpgpu', 'cpu', 'core', 'intelligen']
 
 _uninteresting_tfidf_traits = ['results','consists','adjustme',
@@ -45,9 +45,9 @@ assert(all(x in allstems for s in _tfidf_traits))
 
 # helpers
 def _cov2(x,y):
-    """ Computes the covariance between vectors x and y, 
-    except dividing the sum of mean deviations by n rather than by n+1. 
-    This is how excel does it, but is not the 'sample covariance', 
+    """ Computes the covariance between vectors x and y,
+    except dividing the sum of mean deviations by n rather than by n+1.
+    This is how excel does it, but is not the 'sample covariance',
     the generally held best estimator for the covariance. We have this function
     to test against Marks' implementation in excel. """
     assert(x.shape==y.shape)
@@ -73,7 +73,7 @@ def running_avg(xsum, N, new_xs):
     """ Update the mean, given new data, if we only know the sum and count of previous data. """
     M = len(new_xs)
     return (xsum + np.sum(new_xs))/float(N+M)
-    
+
 def running_cov(N, xsum, ysum, dotxy, new_xs, new_ys, ret_avgs = False):
     """ Update the covariance, given new data and the maintained dot product, sums, and lengths of the two vectors."""
     M = len(new_xs)
@@ -89,10 +89,10 @@ def running_cov(N, xsum, ysum, dotxy, new_xs, new_ys, ret_avgs = False):
 
 def get_rel_num_children(population, rel_avg = True):
     """
-    For a given population (here, list of patent documents), 
+    For a given population (here, list of patent documents),
     return a list (with an element for each member of the population)
     containing how many children each entity has (optionally, relative
-    to the average number of children). 
+    to the average number of children).
     """
     nchilds = np.array([doc.get('n_citedby', 0) for doc in population])
     if not rel_avg:
@@ -100,13 +100,13 @@ def get_rel_num_children(population, rel_avg = True):
     else:
         avg_childs = np.mean(nchilds)
         return nchilds/float(avg_childs)
-    
+
 def get_rel_num_parents(population, rel_avg = True):
     """
-    For a given population (here, list of patent documents), 
+    For a given population (here, list of patent documents),
     return a list (with an element for each member of the population)
     containing how many parents each entity has (optionally, relative
-    to the average number of parents). 
+    to the average number of parents).
     """
     nparents = np.array([doc.get('n_rawcites', 0) for doc in population])
     if not rel_avg:
@@ -122,15 +122,15 @@ def get_traits(population, trait_type, trait):
     whose i^th element indicates the value of the trait in the i^th member
     of the population. This can be binary or real-valued, depending on
     the nature of the trait. The function used to determine the value
-    (which can 'binarize') is given in the _trait_info dictionary. 
+    (which can 'binarize') is given in the _trait_info dictionary.
     """
     _,_,_,trait_val = _trait_info[trait_type]
     return np.array([trait_val(doc, trait) for doc in population])
 
 class TemporalGPE(object):
     """
-    A class which computes the GPE for a particular trait over time. 
-    It only works if we take the number of children a patent has as fixed :/. 
+    A class which computes the GPE for a particular trait over time.
+    It only works if we take the number of children a patent has as fixed :/.
     """
     def __init__(self, trait_type, trait, anc_pop):
         """
@@ -141,20 +141,20 @@ class TemporalGPE(object):
         self.trait_type = trait_type
         self.trait = trait
 
-        self.anc_N = len(anc_pop) # we maintain the size of the ancestral population already processed. 
-        _anc_traits = get_traits(anc_pop, self.trait_type, self.trait) 
+        self.anc_N = len(anc_pop) # we maintain the size of the ancestral population already processed.
+        _anc_traits = get_traits(anc_pop, self.trait_type, self.trait)
         _anc_children = get_rel_num_children(anc_pop)
         self.anc_trait_sum = np.sum(_anc_traits) # running sum of the values of ancestor traits.
         self.anc_n_children_sum = np.sum(_anc_children) #running sum of the the cumulative number of ancestors' children.
         self.dot_nc_traits = np.dot(_anc_traits, _anc_children) # running dot product of the trait value vectors and number of children vectors.
         self.prev_t1 = np.cov(_anc_children, _anc_traits)[0][1] # GPE term 1 from the previous timestep. Can be computed before descendant population given.
         self.gpes = [] # A list of four-tuples, the ith of which gives (t1,t2,t3,total) for the ith time step.
-        
+
     def update(self, desc_pop):
         """
-        Add a new descendant population - compute the gpe terms for this episode of evolution, 
+        Add a new descendant population - compute the gpe terms for this episode of evolution,
         and update sufficient statistics for the next episode, adding the descendants into the pool
-        of ancestors. 
+        of ancestors.
         """
         desc_M = len(desc_pop)
 
@@ -168,12 +168,12 @@ class TemporalGPE(object):
         desc_trait_avg = float(desc_trait_sum)/desc_M
         anc_trait_avg = self.anc_trait_sum/float(self.anc_N)
         t1 = self.prev_t1
-        # np.cov returns a covariance matrix. 
+        # np.cov returns a covariance matrix.
         t3 = np.cov(rel_parents, desc_traits)[0][1]
         gpe_tot = desc_trait_avg - anc_trait_avg
         t2 = gpe_tot + t3 - t1
         self.gpes.append((t1, t2, t3, gpe_tot))
-        
+
         # update prev_t1 and running sums, counts, dot products
         self.prev_t1 = running_cov(self.anc_N, self.anc_n_children_sum, self.anc_trait_sum, self.dot_nc_traits, rel_children, desc_traits)
         self.dot_nc_traits += np.dot(desc_traits, rel_children)
@@ -256,17 +256,18 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
     mapfunc1 = lambda x: TemporalGPE_NonCum(trait_type, x)
     gpes_list = parmap(mapfunc1, traits)
     current_time = datetime.now()
-    for (time_0, time_1) in step_thru_qtrs(init_year, end_year, init_month, end_month):
-#    for start_year, start_month in qtr_year_iter(init_year, end_year):
+    # OLD: for (time_0, time_1) in step_thru_qtrs(init_year, end_year, init_month, end_month):
+    for (time_0, time_1) in step_thru_years(init_year, end_year, init_month):
+    #for start_year, start_month in qtr_year_iter(init_year, end_year):
         # at each timestep, have threads go after a work queue with gpe updates
         logging.info("Updating GPE at time {}".format(time_0))
         logging.info("loading pops...")
         if mark:
             anc_pop, desc_pop = get_anc_dec_mark(db, time_0, time_1, limit = None)
-#            anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
+            #anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
         else:
             anc_pop, desc_pop = get_anc_noncum(db, time_0, time_1, limit = None)
-#            anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
+            #anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
         logging.info("anc pop size: {}, desc pop size: {}".format(len(anc_pop), len(desc_pop)))
         def mapfunc(gpe_computer):
             logging.info("Updating trait {}...".format(gpe_computer.trait))
@@ -291,7 +292,7 @@ def main_static(name):
     logging.info("starting with tfidf...")
     gpes_tfidf = run_gpe_parmap(db, 'tf-idf', tfidf_traits,
                                        mindate.year, maxdate.year)
-    
+
     # Serialize the GPE results as a pickled python dictionary.
     pickle_fn = name+'gpes_tfidf_3k.p'
     logging.info("done. pickling in {}...".format(pickle_fn))
@@ -315,7 +316,7 @@ def main_static(name):
     # Serialize the GPE results as a pickled python dictionary.
     logging.info("saving as pickle...")
     pickle_obj(name+'gpes_docvec.p', gpes_docvec)
-    
+
     # Save the computed GPE terms as csv.
     logging.info("done. saving as csv.")
     with open(name+'gpes_docvec.csv', 'wb') as outfile:
@@ -331,17 +332,17 @@ def main_noncum(name, mark=False):
     db = MongoClient().patents
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
-    
+
 #    tfidf_traits = _tfidf_traits
     tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
- 
+
     docvec_traits = range(200) # each cluster is a docvec trait
 
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
     gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits,
                                        mindate.year, maxdate.year, mark=mark)
-    
+
     # Serialize the GPE results as a pickled python dictionary.
     pickle_fn = name+'gpes_tfidf_3k.p'
     logging.info("done. pickling in {}...".format(pickle_fn))
@@ -365,7 +366,7 @@ def main_noncum(name, mark=False):
     # Serialize the GPE results as a pickled python dictionary.
     logging.info("saving as pickle...")
     pickle_obj(name+'gpes_docvec.p', gpes_docvec)
-    
+
     # Save the computed GPE terms as csv.
     logging.info("done. saving as csv.")
     with open(name+'gpes_docvec.csv', 'wb') as outfile:
@@ -376,7 +377,7 @@ def main_noncum(name, mark=False):
                 writer.writerow([trait, step]+list(term_list))
 
     return gpes_tfidf, gpes_docvec
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'> <NAME>".format(sys.argv[0]))
@@ -388,10 +389,11 @@ if __name__ == '__main__':
         logging.info('running noncum gpe.')
         main_noncum(name, mark=False)
     elif sys.argv[1] == 'MARK':
+        print('here')
         logging.info('running mark style gpe.')
         main_noncum(name, mark=True)
     else:
         sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'> <NAME>".format(sys.argv[0]))
 
-    
-        
+
+

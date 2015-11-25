@@ -1,12 +1,12 @@
-# Determines some traits on which to run GPE as requested by M.A.B. 
+# Determines some traits on which to run GPE as requested by M.A.B.
 from alife.util.general import load_obj
 import numpy as np
 
 def _load_df():
-    """ Loads a dictionary of document frequencies from disk. Assumes It lives at a particular location on disk. 
+    """ Loads a dictionary of document frequencies from disk. Assumes It lives at a particular location on disk.
     TODO: throw this function (and all such functions) into alife.data
     """
-    _data_dir = '/Users/jmenick/Desktop/alife_refactor/output/aggregate_stats'
+    _data_dir = '/Users/alexledger/Desktop/new_alife/output/aggregate_stats'
     _df_fn = '/'.join([_data_dir, 'tfidf_doc_freq.p'])
     try:
         df_dict = load_obj(_df_fn)

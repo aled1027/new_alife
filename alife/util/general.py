@@ -1,7 +1,7 @@
-# General utility functions. 
+# General utility functions.
 
 from itertools import islice, izip, tee
-from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date. 
+from bson.objectid import ObjectId # crap, we have old pymongo. Need to bring this up to date.
 from datetime import datetime, timedelta
 import multiprocessing as mp
 import cPickle
@@ -20,7 +20,7 @@ def string_to_dt(fmt_string):
     return datetime(year=year,month=month,day=day)
 
 def step_thru_time(start,end, delta=timedelta(days=7)):
-    """ Returns a list of time pairs triples (t-1,t, t+1) which define 
+    """ Returns a list of time pairs triples (t-1,t, t+1) which define
     endpoints of intervals of length delta (default 1 week). """
     i = 0
     times = []
@@ -39,8 +39,8 @@ def step_thru_time(start,end, delta=timedelta(days=7)):
 def take(n, iterable):
     """
     Take the first n items from an iterable data structure as a list.
-    If n is more than the number of items in the iterable, just 
-    return all of them. 
+    If n is more than the number of items in the iterable, just
+    return all of them.
     """
     assert(n >= 0)
     out = (x for x in islice(iterable, n))
@@ -79,7 +79,7 @@ def load_obj(filename):
 def cosine_dist(v1,v2):
     """
     Computes the cosine distance between two vectors,
-    which is 1 - the cosine of the angle between them. 
+    which is 1 - the cosine of the angle between them.
     Recall that <v1,v2> = ||v1|| * ||v2|| * cos(theta)
     """
     cos_ang = np.dot(v1,v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
@@ -90,7 +90,7 @@ def euclidean_dist(v1,v2):
 
 def normalize(vector):
     """
-    Normalize a vector so that its components sum to 1. 
+    Normalize a vector so that its components sum to 1.
     """
     return vector/np.linalg.norm(vector)
 
@@ -100,7 +100,7 @@ def objid_to_int(objid):
 def int_to_objid(x):
     return ObjectId(hex(x).rstrip("L").lstrip("0x") or "0")
 
-# TODO - These timer utilities should be decorators. 
+# TODO - These timer utilities should be decorators.
 def timeFunc(f):
     start = time.time()
     f()
@@ -117,7 +117,7 @@ def timer(f,n=10):
     )
 
 def pairwise_iter(iterable):
-    """ Iterate over the iterable in pairs. E.g. 
+    """ Iterate over the iterable in pairs. E.g.
     [1,2,3,4,5] -> (1,2), (2,3), (3,4), ... """
     a,b = tee(iterable)
     next(b,None)
@@ -137,17 +137,33 @@ def qtr_year_iter(start_year, end_year, start_month=1, end_month=1):
         y, m = divmod( ym, 12 )
         yield y, m+1
 
+def year_year_iter(start_year, end_year, start_month=1):
+    """
+    generates list of date from start_year to end_year incremented by year
+    e.g. [(1980,1),(1981,1),(1982,1) ...]
+    """
+    ym_start= 12*start_year + start_month - 1
+    ym_end= 12*end_year + start_month - 1
+    for ym in range(start_year, end_year):
+        yield ym, start_month
+
+
 def step_thru_months(start_yr, end_yr, start_month=1, end_month=1):
     """ produce an iterator of pairs of times, each one month apart. """
     for ((y1,m1), (y2,m2)) in pairwise_iter(month_year_iter(start_yr, end_yr)):
         yield datetime(year=y1,month=m1,day=1), datetime(year=y2,month=m2,day=1)
 
 def step_thru_qtrs(start_yr, end_yr, start_month=1, end_month=1):
-    """ produce an iterator of pairs of times, each one month apart. """
+    """ produce an iterator of pairs of times, each one quarter apart. """
     for ((y1,m1), (y2,m2)) in pairwise_iter(qtr_year_iter(
             start_yr, end_yr, start_month, end_month
     )):
         yield datetime(year=y1,month=m1,day=1), datetime(year=y2,month=m2,day=1)
+
+def step_thru_years(start_yr, end_yr, start_month=1):
+    """ produce an iterator of pairs of times, each one year apart. """
+    for ((y1, m1), (y2, m2)) in pairwise_iter(year_year_iter(start_yr, end_yr, start_month)):
+        yield datetime(year=y1, month=m1, day=1), datetime(year=y2, month=m2, day=1)
 
 # Parallel map-like function, thanks to stackoverflow. Link below.
 # http://stackoverflow.com/questions/3288595/multiprocessing-using-pool-map-on-a-function-defined-in-a-class
