@@ -1,0 +1,350 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+MyLda	alife/txtmine/lda.py	/^class MyLda(object):$/;"	c
+PatentSampler	alife/util/randpat.py	/^class PatentSampler(object):$/;"	c
+STOPLISTS	alife/txtmine/stoplists/__init__.py	/^STOPLISTS = {'english': 'englishStop.txt', 'patents': 'patentStop.txt'}$/;"	v
+THISDIR	alife/txtmine/stoplists/__init__.py	/^THISDIR = os.path.dirname(os.path.realpath(__file__))$/;"	v
+TemporalGPE	alife/traits/fast_gpe.py	/^class TemporalGPE(object):$/;"	c
+TemporalGPE_NonCum	alife/traits/fast_gpe.py	/^class TemporalGPE_NonCum(object):$/;"	c
+Test2GenReachTFIDF	tests/test_dooropening/test_dooropening.py	/^    def Test2GenReachTFIDF(self):$/;"	m	class:TestReachComputation
+Test2GenReachW2V	tests/test_dooropening/test_dooropening.py	/^    def Test2GenReachW2V(self):$/;"	m	class:TestReachComputation
+Test2GenTraitVarianceTFIDF	tests/test_dooropening/test_dooropening.py	/^    def Test2GenTraitVarianceTFIDF(self):$/;"	m	class:TestReachComputation
+Test2GenTraitVarianceW2V	tests/test_dooropening/test_dooropening.py	/^    def Test2GenTraitVarianceW2V(self):$/;"	m	class:TestReachComputation
+Test5GenReachTFIDF	tests/test_dooropening/test_dooropening.py	/^    def Test5GenReachTFIDF(self):$/;"	m	class:TestReachComputation
+Test5GenReachW5V	tests/test_dooropening/test_dooropening.py	/^    def Test5GenReachW5V(self):$/;"	m	class:TestReachComputation
+Test5GenTraitVarianceTFIDF	tests/test_dooropening/test_dooropening.py	/^    def Test5GenTraitVarianceTFIDF(self):$/;"	m	class:TestReachComputation
+Test5GenTraitVarianceW2V	tests/test_dooropening/test_dooropening.py	/^    def Test5GenTraitVarianceW2V(self):$/;"	m	class:TestReachComputation
+TestAgreesWithMarkImplementation	tests/test_traits/test_gpe.py	/^    def TestAgreesWithMarkImplementation(self):$/;"	m	class:testComputeGPE
+TestCrawlLineage	tests/test_util/test_dbutil.py	/^class TestCrawlLineage(unittest.TestCase):$/;"	c
+TestGetFieldsUnordered	tests/test_util/test_dbutil.py	/^class TestGetFieldsUnordered(unittest.TestCase):$/;"	c
+TestLda	tests/test_txtmine/test_lda.py	/^class TestLda(unittest.TestCase):$/;"	c
+TestLowLevelTxtUtils	tests/test_txtmine/test_util.py	/^class TestLowLevelTxtUtils(unittest.TestCase):$/;"	c
+TestParentChildTraitDistance	tests/test_dooropening/test_dooropening.py	/^class TestParentChildTraitDistance(unittest.TestCase):$/;"	c
+TestReachComputation	tests/test_dooropening/test_dooropening.py	/^class TestReachComputation(unittest.TestCase):$/;"	c
+TestSampler	tests/test_util/test_randpat.py	/^class TestSampler(unittest.TestCase):$/;"	c
+TestStopList	tests/test_txtmine/test_stoplist.py	/^class TestStopList(unittest.TestCase):$/;"	c
+TestTokenizer	tests/test_txtmine/test_tokenizer.py	/^class TestTokenizer(unittest.TestCase):$/;"	c
+Tokenizer	alife/txtmine/tokenizer.py	/^class Tokenizer(object):$/;"	c
+__init__	alife/traits/fast_gpe.py	/^    def __init__(self, trait_type, trait):$/;"	m	class:TemporalGPE_NonCum
+__init__	alife/traits/fast_gpe.py	/^    def __init__(self, trait_type, trait, anc_pop):$/;"	m	class:TemporalGPE
+__init__	alife/txtmine/lda.py	/^    def __init__(self, n_topics, name=''):$/;"	m	class:MyLda
+__init__	alife/txtmine/tokenizer.py	/^    def __init__(self, replace_hyphens=True, stemming=False, stopwords=all_stops):$/;"	m	class:Tokenizer
+__init__	alife/util/randpat.py	/^    def __init__(self, db, collection_name):$/;"	m	class:PatentSampler
+_allstar_pnos	alife/__init__.py	/^_allstar_pnos = [$/;"	v
+_big_friend_pnos	alife/__init__.py	/^_big_friend_pnos = [$/;"	v
+_cluster_locs	alife/util/__init__.py	/^_cluster_locs = {$/;"	v
+_cov2	alife/traits/fast_gpe.py	/^def _cov2(x,y):$/;"	f
+_date_fmt_string	alife/util/general.py	/^_date_fmt_string = "%Y_%m_%d"$/;"	v
+_db	alife/traits/precompute_pops.py	/^_db = MongoClient().patents$/;"	v
+_db	alife/txtmine/w2v.py	/^_db = MongoClient().patents$/;"	v
+_dist	alife/txtmine/w2v.py	/^def _dist(v1,v2):$/;"	f
+_exist	alife/graphmine/densityEst.py	/^_exist = load_file('existence_surface')$/;"	v
+_fn	alife/util/__init__.py	/^def _fn(name): return '\/'.join([_model_dir, name])$/;"	f
+_freq	alife/graphmine/densityEst.py	/^_freq = load_file('frequency_surface')$/;"	v
+_friendly_patents	alife/txtmine/w2v.py	/^_friendly_patents = [('zeolites', 4061724), ('semiconductors', 4064521), $/;"	v
+_fun	alife/util/general.py	/^def _fun(f,q_in,q_out):$/;"	f
+_fun_verbose	alife/util/general.py	/^def _fun_verbose(f,q_in,q_out):$/;"	f
+_hsl_to_rgb	alife/visualize/discrete_color.py	/^def _hsl_to_rgb(hsl):$/;"	f
+_id_type	alife/util/randpat.py	/^def _id_type(collection):$/;"	f
+_interesting_tfidf_traits	alife/traits/fast_gpe.py	/^_interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobil',$/;"	v
+_load_df	alife/traits/determine_traits.py	/^def _load_df():$/;"	f
+_log_format	alife/traits/fast_gpe.py	/^_log_format = '%(asctime)s : %(levelname)s : %(message)s'$/;"	v
+_logfn	alife/traits/fast_gpe.py	/^_logfn = 'fast_gpe.log'$/;"	v
+_microanalysis_pnos	alife/__init__.py	/^_microanalysis_pnos = _allstar_pnos + _small_friend_pnos + _big_friend_pnos$/;"	v
+_model_dir	alife/util/__init__.py	/^_model_dir = '\/Users\/jmenick\/Desktop\/jmAlife\/output\/models'$/;"	v
+_month_outdir	alife/traits/precompute_pops.py	/^_month_outdir = '\/Users\/jmenick\/Desktop\/alife_refactor\/alife\/traits\/precomputed_pops_months'$/;"	v
+_normal_pnos	alife/__init__.py	/^_normal_pnos = _small_friend_pnos + _big_friend_pnos$/;"	v
+_nshared_dict	alife/traits/traitshare.py	/^_nshared_dict = {'tf-idf': nshared_tfidf, 'w2v': nshared_w2v, 'lda': nshared_lda}$/;"	v
+_pop_dir	alife/traits/fast_gpe.py	/^_pop_dir = '\/Users\/jmenick\/Desktop\/alife_refactor\/alife\/traits\/precomputed_pops_qtrs_fix'$/;"	v
+_prob	alife/graphmine/densityEst.py	/^_prob = load_file('probability_surface')$/;"	v
+_process_texts	alife/txtmine/lda.py	/^    def _process_texts(self, texts, generator = False):$/;"	m	class:MyLda
+_qtr_outdir	alife/traits/precompute_pops.py	/^_qtr_outdir = '\/Users\/jmenick\/Desktop\/alife_refactor\/alife\/traits\/precomputed_pops_qtrs_fix'$/;"	v
+_qtr_outdir_mark	alife/traits/precompute_pops.py	/^_qtr_outdir_mark = '\/Users\/jmenick\/Desktop\/alife_refactor\/alife\/traits\/precomputed_pops_qtrs_mark'$/;"	v
+_qtr_outdir_noncum	alife/traits/precompute_pops.py	/^_qtr_outdir_noncum = '\/Users\/jmenick\/Desktop\/alife_refactor\/alife\/traits\/precomputed_pops_qtrs_noncum'$/;"	v
+_rand_ids	alife/util/randpat.py	/^    def _rand_ids(self, n, replace=False):$/;"	m	class:PatentSampler
+_sentinel_date	alife/db_explorer/cites_over_time.py	/^_sentinel_date = datetime.datetime(year=1970,month=1,day=1)$/;"	v
+_sentinel_date	alife/db_explorer/pats_over_time.py	/^_sentinel_date = datetime.datetime(year=1970,month=1,day=1)$/;"	v
+_small_friend_pnos	alife/__init__.py	/^_small_friend_pnos = [$/;"	v
+_stem2id	alife/traits/__init__.py	/^_stem2id = load_file('stem2id')$/;"	v
+_test_outdir	alife/traits/precompute_pops.py	/^_test_outdir = '\/Users\/jmenick\/Desktop\/alife_refactor\/alife\/traits\/precomputed_pops_test'$/;"	v
+_test_scheme	alife/visualize/discrete_color.py	/^def _test_scheme(colors,show=True,savefn=None):$/;"	f
+_tfidf_traits	alife/traits/fast_gpe.py	/^_tfidf_traits = [x if x in allstems else stemfunc(x) for x in tfidf_traits]$/;"	v
+_this_dir	tests/test_txtmine/test_lda.py	/^_this_dir = os.path.dirname(os.path.realpath(__file__))$/;"	v
+_tokenizer	alife/txtmine/w2v.py	/^_tokenizer = Tokenizer()$/;"	v
+_trait_info	alife/traits/__init__.py	/^_trait_info = {$/;"	v
+_uninteresting_tfidf_traits	alife/traits/fast_gpe.py	/^_uninteresting_tfidf_traits = ['results','consists','adjustme',$/;"	v
+_w2v_locs	alife/util/__init__.py	/^_w2v_locs = {$/;"	v
+aging_kernel	alife/graphmine/smoothEmpiricalModel.py	/^def aging_kernel(age, shape=1.686, scale=737.7, c=17.62):$/;"	f
+all_stops	alife/txtmine/tokenizer.py	/^all_stops = list(set(english_stops).union(set(patent_stops)))$/;"	v
+allstems	alife/traits/fast_gpe.py	/^allstems = [x[0] for x in _load_df()]$/;"	v
+almostall	alife/traits/determine_traits.py	/^def almostall():$/;"	f
+as	alife/mockdb/data/mock_pat_text.p	/^VPolyalkoxy monovinylaromatic compound in copolymerization of a** Polyalkoxy monovinyl substituted aromatic compounds, such as 3,4-dimethoxystyrene, function as both comonomer and randomizing agent in organolithium initiated copolymerization of a conjugated diene with a monovinyl aromatic compound, such as of butadiene with styrene. The resultant polymeric product exhibits lower levels of block styrene than does a corresponding copolymer made in the absence of the dimethoxystyrene.$/;"	f
+attachment_kernel	alife/graphmine/smoothEmpiricalModel.py	/^def attachment_kernel(n_cites, gamma=0.000655460045616, beta=1.0468):$/;"	f
+cite_prob	alife/graphmine/smoothEmpiricalModel.py	/^def cite_prob(n_cites, age):$/;"	f
+cites_over_time	alife/db_explorer/cites_over_time.py	/^def cites_over_time(db, limit=100):$/;"	f
+cluster_distances	alife/txtmine/w2v.py	/^def cluster_distances(db, pno, w2v_model, cluster_model, srtd = True):$/;"	f
+cluster_val	alife/traits/__init__.py	/^def cluster_val(doc, cluster_idx):$/;"	f
+colors	alife/visualize/discrete_color.py	/^    colors = discrete_color_scheme(6)$/;"	v
+community_colors	alife/graphmine/communities.py	/^def community_colors(db, pno, threshold, show_vis = False, savefn=None):$/;"	f
+community_colors_list	alife/graphmine/communities.py	/^    community_colors_list = main()$/;"	v
+compute_gpe_raw	alife/traits/fast_gpe.py	/^def compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg, sample_cov = True):$/;"	f
+compute_reach	alife/dooropening/reach.py	/^def compute_reach(db, trait='w2v', n_gens=2, family=None, enforce_func = lambda x: True):$/;"	f
+compute_trait_variance	alife/dooropening/reach.py	/^def compute_trait_variance(db, trait='w2v', n_gens=2, family=None, enforce_func = lambda x: True):$/;"	f
+corpusfn	alife/txtmine/lda.py	/^        corpusfn = sys.argv[4]$/;"	v
+cosine_dist	alife/util/general.py	/^def cosine_dist(v1,v2):$/;"	f
+crawl_lineage	alife/util/dbutil.py	/^def crawl_lineage(db, ancestor_pno, n_generations=3,fields = ['_id', 'citedby'], $/;"	f
+data	alife/traits/plot_gpe.py	/^    data = load_obj(fn)$/;"	v
+data_dir	alife/mockdb/mockdb.py	/^data_dir = '\/'.join([os.path.dirname(os.path.realpath(__file__)), 'data'])$/;"	v
+db	alife/traits/plot_gpe.py	/^db = MongoClient().patents$/;"	v
+db	alife/txtmine/lda.py	/^        db = MongoClient().patents$/;"	v
+db	alife/txtmine/w2v.py	/^    db = MongoClient().patents$/;"	v
+db_dumps	alife/mockdb/mockdb.py	/^db_dumps = {$/;"	v
+densify_lda	alife/traits/__init__.py	/^def densify_lda(topic_strengths, K=200, normalize=True):$/;"	f
+densify_tfidf	alife/traits/__init__.py	/^def densify_tfidf(top_tfidf):$/;"	f
+describe_topic	alife/txtmine/lda.py	/^    def describe_topic(self, index):$/;"	m	class:MyLda
+discrete_color_scheme	alife/visualize/discrete_color.py	/^def discrete_color_scheme(n=10,home_color=(193,95,25)): # I wanted to make the default darker. Still cyan don't worry.$/;"	f
+distances_from	alife/txtmine/w2v.py	/^def distances_from(v1, other_vs):$/;"	f
+div	alife/graphmine/densityEst.py	/^    def div(x,y):$/;"	f	function:divide_matrices
+div	alife/graphmine/densityEst.py	/^    def div(x,y):$/;"	f	function:divide_vectors
+divide_matrices	alife/graphmine/densityEst.py	/^def divide_matrices(m1,m2):$/;"	f
+divide_vectors	alife/graphmine/densityEst.py	/^def divide_vectors(v1,v2):$/;"	f
+doc_topics	alife/txtmine/lda.py	/^    def doc_topics(self, docs):$/;"	m	class:MyLda
+dooropen_hist_micro_overlaid	alife/db_explorer/dooropen_explore.py	/^def dooropen_hist_micro_overlaid(show=False, savefn=None):$/;"	f
+dooropen_hist_w2v_2gen	alife/db_explorer/dooropen_explore.py	/^def dooropen_hist_w2v_2gen(show=False, savefn=None):$/;"	f
+dooropen_vs_indegree_plots	alife/db_explorer/dooropen_explore.py	/^def dooropen_vs_indegree_plots(lim=250000, savefn='test.pdf', show=False):$/;"	f
+dt_as_str	alife/util/general.py	/^def dt_as_str(date_time):$/;"	f
+dump_descendants_over_time	alife/traits/precompute_pops.py	/^def dump_descendants_over_time(db, time_pairs, outdir, limit = None, debug = True):$/;"	f
+dump_pops_over_time	alife/traits/precompute_pops.py	/^def dump_pops_over_time(db, time_pairs, outdir, limit=None, mark = False):$/;"	f
+embedding_fig	alife/visualize/w2v_vis.py	/^def embedding_fig(w2v_model, kmeans_model, n=500, embed_style = 'tsne', savefn = None, show=False):$/;"	f
+english_stops	alife/txtmine/tokenizer.py	/^english_stops = stoplists.load_stoplist('english')$/;"	v
+euclidean_dist	alife/util/general.py	/^def euclidean_dist(v1,v2):$/;"	f
+export	alife/txtmine/lda.py	/^    def export(self, outdir, topic_docs = None):$/;"	m	class:MyLda
+file_locs	alife/data/__init__.py	/^file_locs = {$/;"	v
+fit	alife/txtmine/lda.py	/^    def fit(self, pnos, texts = None, from_loaded = False):$/;"	m	class:MyLda
+fit_1d	alife/graphmine/densityEst.py	/^def fit_1d(data, dist_name):$/;"	f
+fit_empirical_model	alife/graphmine/densityEst.py	/^def fit_empirical_model():$/;"	f
+fn	alife/traits/plot_gpe.py	/^    fn = sys.argv[2]$/;"	v
+freq_prop_sample	alife/traits/determine_traits.py	/^def freq_prop_sample(n):$/;"	f
+full_pipeline	alife/txtmine/lda.py	/^def full_pipeline(db, n_topics, out_dir, limit=100, name = ''):$/;"	f
+get_anc_dec_mark	alife/traits/precompute_pops.py	/^def get_anc_dec_mark(db, time_0, time_1, limit = None):$/;"	f
+get_anc_dec_noncum	alife/traits/precompute_pops.py	/^def get_anc_dec_noncum(db, time_0, time_1, limit = None):$/;"	f
+get_and_save_community_colors	alife/graphmine/communities.py	/^def get_and_save_community_colors(db, pnos, thresholds=None):$/;"	f
+get_child_parent_set	alife/traits/traitshare.py	/^def get_child_parent_set(db, N):$/;"	f
+get_child_parset_rand	alife/traits/traitshare.py	/^def get_child_parset_rand(db, N):$/;"	f
+get_cite_pairs	alife/traits/traitshare.py	/^def get_cite_pairs(db, N):$/;"	f
+get_field_generator	alife/util/dbutil.py	/^def get_field_generator(collection, field_name, null_value=None, limit = None):$/;"	f
+get_field_generators	alife/util/dbutil.py	/^def get_field_generators(collection, field_names, null_values=None, limit = None):$/;"	f
+get_fields_unordered	alife/util/dbutil.py	/^def get_fields_unordered(collection, field_names=None, null_values=None, limit = None):$/;"	f
+get_mock	alife/mockdb/mockdb.py	/^def get_mock(coll_names=db_dumps.keys()):$/;"	f
+get_new_descendants	alife/traits/precompute_pops.py	/^def get_new_descendants(db, time_0, time_1, limit = None):$/;"	f
+get_par_childset_rand	alife/traits/traitshare.py	/^def get_par_childset_rand(db, N):$/;"	f
+get_parent_child_set	alife/traits/traitshare.py	/^def get_parent_child_set(db, N):$/;"	f
+get_rand_pairs	alife/traits/traitshare.py	/^def get_rand_pairs(db, N):$/;"	f
+get_rel_num_children	alife/traits/fast_gpe.py	/^def get_rel_num_children(population, rel_avg = True):$/;"	f
+get_rel_num_parents	alife/traits/fast_gpe.py	/^def get_rel_num_parents(population, rel_avg = True):$/;"	f
+get_traits	alife/traits/fast_gpe.py	/^def get_traits(population, trait_type, trait):$/;"	f
+getvec	alife/txtmine/w2v.py	/^    def getvec(word,model):$/;"	f	function:tfidf_weighted_avg
+gpes	alife/traits/gpes_to_csv.py	/^    gpes = load_obj(infn)$/;"	v
+has_cluster_bin	alife/traits/__init__.py	/^def has_cluster_bin(doc, cluster_idx):$/;"	f
+has_stem_bin	alife/traits/__init__.py	/^def has_stem_bin(doc, stem):$/;"	f
+has_topic_bin	alife/traits/__init__.py	/^def has_topic_bin(doc, topic_idx):$/;"	f
+heatmap	alife/visualize/matrix_vis.py	/^def heatmap(matrix, show=True,savefn =None,$/;"	f
+hex2rgb	alife/visualize/network_vis.py	/^def hex2rgb(hexcolor):$/;"	f
+hist_to_full_arr	alife/graphmine/densityEst.py	/^def hist_to_full_arr(hist):$/;"	f
+in_and_out_counts	alife/db_explorer/degree_dist.py	/^def in_and_out_counts(db, limit=None):$/;"	f
+inbase	alife/traits/gpes_to_csv.py	/^    inbase = os.path.basename(infn)$/;"	v
+infn	alife/traits/gpes_to_csv.py	/^        infn = sys.argv[1]$/;"	v
+infn	alife/traits/parse_log.py	/^        infn = sys.argv[1]$/;"	v
+infn	alife/traits/parse_log.py	/^    infn = 'stuck_gpe.log'$/;"	v
+int_to_objid	alife/util/general.py	/^def int_to_objid(x):$/;"	f
+is_num	alife/txtmine/util.py	/^def is_num(inString):$/;"	f
+just_age	alife/graphmine/densityEst.py	/^def just_age(age_cutoff = 900, ret=True, savefn = None, show = True):$/;"	f
+just_pcites	alife/graphmine/densityEst.py	/^def just_pcites(pcites_cutoff = 900, savefn = None, ret = True, show=True):$/;"	f
+lda_dist	alife/traits/__init__.py	/^def lda_dist(traits_a, traits_b):$/;"	f
+len_or_0	alife/traits/precompute_pops.py	/^def len_or_0(x):$/;"	f
+load_anc_dec	alife/traits/fast_gpe.py	/^def load_anc_dec(start_date, indir):$/;"	f
+load_corpus	alife/txtmine/lda.py	/^    def load_corpus(self, fn):$/;"	m	class:MyLda
+load_corpus	alife/txtmine/lda.py	/^def load_corpus(fn):$/;"	f
+load_dict	alife/util/general.py	/^def load_dict(filename):$/;"	f
+load_file	alife/data/__init__.py	/^def load_file(name):$/;"	f
+load_keymap	alife/data/__init__.py	/^def load_keymap(collection_name):$/;"	f
+load_lda	alife/txtmine/lda.py	/^def load_lda(fn):$/;"	f
+load_obj	alife/util/general.py	/^def load_obj(filename):$/;"	f
+load_pop	alife/traits/fast_gpe.py	/^def load_pop(start_date):$/;"	f
+load_stoplist	alife/txtmine/stoplists/__init__.py	/^def load_stoplist(name):$/;"	f
+load_vocab	alife/txtmine/lda.py	/^    def load_vocab(self, fn):$/;"	m	class:MyLda
+load_vocab	alife/txtmine/lda.py	/^def load_vocab(fn):$/;"	f
+low_d	alife/visualize/pca_to_rgb.py	/^def low_d(Z):$/;"	f
+main	alife/db_explorer/cites_over_time.py	/^def main():$/;"	f
+main	alife/db_explorer/degree_dist.py	/^def main():$/;"	f
+main	alife/dooropening/reach.py	/^def main(db, family=None):$/;"	f
+main	alife/graphmine/communities.py	/^def main():$/;"	f
+main	alife/graphmine/densityEst.py	/^def main(ret=False, savefn = None):$/;"	f
+main	alife/pipeline/incidentals/insert_lda_topics.py	/^def main():$/;"	f
+main	alife/pipeline/incidentals/insert_w2v_clusters.py	/^def main():$/;"	f
+main	alife/traits/parse_log.py	/^def main(infn, outfn, verbose = True):$/;"	f
+main	alife/traits/precompute_pops.py	/^def main():$/;"	f
+main	alife/visualize/network_vis.py	/^def main():$/;"	f
+main	alife/visualize/pca_to_rgb.py	/^def main(n_vectors=100, vector_dim=1000):$/;"	f
+main_noncum	alife/traits/fast_gpe.py	/^def main_noncum(name, mark=False):$/;"	f
+main_static	alife/traits/fast_gpe.py	/^def main_static(name):$/;"	f
+mapfunc	alife/traits/fast_gpe.py	/^        def mapfunc(gpe_computer):$/;"	f	function:run_gpe_parmap
+mapfunc	alife/traits/fast_gpe.py	/^        def mapfunc(gpe_computer):$/;"	f	function:run_gpe_parmap_noncum
+maxdate	alife/traits/plot_gpe.py	/^maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']$/;"	v
+maxdate_test	alife/traits/plot_gpe.py	/^maxdate_test = datetime(year=mindate.year+4,month=1,day=1)$/;"	v
+middle_of_dist	alife/traits/determine_traits.py	/^def middle_of_dist(dfs, low_cutoff_n, high_cutoff_n):$/;"	f
+middle_of_dist_freq	alife/traits/determine_traits.py	/^def middle_of_dist_freq(dfs, low_cutoff_freq, high_cutoff_freq):$/;"	f
+mindate	alife/traits/plot_gpe.py	/^mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']$/;"	v
+model_loader	alife/util/__init__.py	/^def model_loader(vec_size=300, n_clusters=300):$/;"	f
+model_report	alife/txtmine/w2v.py	/^def model_report(db, pnos, w2v_model, cluster_model, outdir, top_n=10):$/;"	f
+month_year_iter	alife/util/general.py	/^def month_year_iter(start_year, end_year, start_month=1, end_month=1):$/;"	f
+mysplit	alife/txtmine/util.py	/^def mysplit(inString):$/;"	f
+n_children	alife/traits/precompute_pops.py	/^def n_children(anc, descendant_pop):$/;"	f
+n_clusters	alife/txtmine/w2v.py	/^    n_clusters = int(sys.argv[2])$/;"	v
+n_topics	alife/txtmine/lda.py	/^        n_topics = int(sys.argv[1])$/;"	v
+name	alife/traits/fast_gpe.py	/^    name = sys.argv[2]$/;"	v
+name	alife/traits/plot_gpe.py	/^    name = sys.argv[3]$/;"	v
+network_plot	alife/visualize/network_vis.py	/^def network_plot(ancestor_pno, adj, colormap, show=True, savefn=None, title = 'PCA coloring in Patent '):$/;"	f
+normalize	alife/util/general.py	/^def normalize(vector):$/;"	f
+nshared	alife/traits/traitshare.py	/^def nshared(patent1, patent2, trait_type):$/;"	f
+nshared_lda	alife/traits/traitshare.py	/^def nshared_lda(patent1, patent2):$/;"	f
+nshared_tfidf	alife/traits/traitshare.py	/^def nshared_tfidf(patent1, patent2):$/;"	f
+nshared_w2v	alife/traits/traitshare.py	/^def nshared_w2v(patent1, patent2):$/;"	f
+objid_to_int	alife/util/general.py	/^def objid_to_int(objid):$/;"	f
+of	alife/mockdb/data/mock_pat_text.p	/^VViscosity detection apparatus and method** Apparatus and method applicable to liquid chromatography for continuously detecting the viscosity of the effluent from an analysis column of a chromatograph system. The effluent is forced through a tubular path in a flow resistance element, which may contain a packing material to increase the amount of energy dissipated in the flow resistance element. The temperature of the effluent is sensed before and after passage through the path. A signal is generated which is a function of the difference between the value of temperature which is sensed before and after traversal of the effluent through the tubular path. From these measurements, the viscosity of the effluent may be computed as a function of the observed temperature change.$/;"	f
+of	alife/mockdb/data/mock_patns.p	/^VA radial piston pump for generating high fuel pressure in common rail fuel injection systems of internal combustion engines having a drive shaft which is rotatably supported in a pump housing and is embodied eccentrically, and having a plurality of pistons, in particular three, each disposed in a respective element bore radially relative to the drive shaft, which are movable radially back and forth in the respective element bore by rotation of the drive shaft and each define one cylinder chamber, which communicates via a suction valve with a low-pressure chamber. Precisely one suction valve is controlled such that it opens and closes as a function of the angle of rotation of the drive shaft.$/;"	f
+one_reach	alife/dooropening/reach.py	/^    def one_reach(doc):$/;"	f	function:compute_reach
+one_trait_var	alife/dooropening/reach.py	/^    def one_trait_var(doc):$/;"	f	function:compute_trait_variance
+out_dir	alife/txtmine/lda.py	/^        out_dir = sys.argv[2]$/;"	v
+outdir	alife/txtmine/w2v.py	/^    outdir = sys.argv[3]$/;"	v
+outfn	alife/traits/gpes_to_csv.py	/^    outfn = inbase.split('.')[0] + '.csv'$/;"	v
+outfn	alife/traits/parse_log.py	/^        outfn = sys.argv[1]$/;"	v
+outfn	alife/traits/parse_log.py	/^    outfn = 'gpes_fromlog.p'    $/;"	v
+p4	alife/mockdb/data/mock_just_cites.p	/^p4$/;"	p
+p4	alife/mockdb/data/mock_patns.p	/^p4$/;"	p
+pairwise_iter	alife/util/general.py	/^def pairwise_iter(iterable):$/;"	f
+parallelMap	alife/util/dbutil.py	/^def parallelMap(func, collection, id_field_name, enforce_func = None,$/;"	f
+parent_child_trait_distance	alife/dooropening/reach.py	/^def parent_child_trait_distance(ancestor_pno, db, trait='w2v', n_gens = 2, enforce_func = lambda x: True):$/;"	f
+parmap	alife/util/general.py	/^def parmap(f, X, nprocs = mp.cpu_count()-1):$/;"	f
+parmap_verbose	alife/util/general.py	/^def parmap_verbose(f, X, nprocs = mp.cpu_count()-1):$/;"	f
+parse_clusters	alife/txtmine/w2v.py	/^def parse_clusters(kmeans, w2v, n_get = 50, n_try = 20, stemmeq=True):$/;"	f
+parse_topics	alife/txtmine/lda.py	/^    def parse_topics(self, n=10):$/;"	m	class:MyLda
+parseline	alife/traits/parse_log.py	/^def parseline(line):$/;"	f
+partFunc	alife/util/dbutil.py	/^                def partFunc(cursor, collection):$/;"	f	function:parallelMap
+part_func	alife/pipeline/incidentals/insert_w2v_clusters.py	/^    def part_func(doc):$/;"	f	function:main
+part_func	alife/pipeline/incidentals/insert_w2v_clusters.py	/^    def part_func(doc):$/;"	f	function:test
+partfunc	alife/pipeline/incidentals/insert_lda_topics.py	/^    def partfunc(doc):$/;"	f	function:main
+partfunc	alife/pipeline/incidentals/insert_lda_topics.py	/^    def partfunc(doc):$/;"	f	function:test
+pat_dates	alife/db_explorer/pats_over_time.py	/^def pat_dates(db, limit=100):$/;"	f
+patent_stops	alife/txtmine/tokenizer.py	/^patent_stops = stoplists.load_stoplist('patents')$/;"	v
+pcites_func	alife/graphmine/densityEst.py	/^def pcites_func(x, gamma, beta, c):$/;"	f
+pickle_obj	alife/util/general.py	/^def pickle_obj(filename, obj):$/;"	f
+pipeline_with_provided_corpus	alife/txtmine/lda.py	/^def pipeline_with_provided_corpus(db, n_topics, out_dir, vocabfn, corpusfn, $/;"	f
+plot3d	alife/visualize/matrix_vis.py	/^def plot3d(matrix, show=True, savefn=None, plt_type='bar', $/;"	f
+plot_fitted	alife/graphmine/densityEst.py	/^def plot_fitted(data, bins=100, dist_name='gamma', show=True,savefn=None):$/;"	f
+plot_gpe	alife/traits/plot_gpe.py	/^def plot_gpe(gpe_data, trait_type, name, out_dir='.\/', per_trait = True, per_term = True, maxdate = maxdate):$/;"	f
+process_anc	alife/traits/precompute_pops.py	/^    def process_anc(anc):$/;"	f	function:get_anc_dec_noncum
+process_dec	alife/traits/precompute_pops.py	/^    def process_dec(dec):$/;"	f	function:get_anc_dec_mark
+process_dec	alife/traits/precompute_pops.py	/^    def process_dec(dec):$/;"	f	function:get_anc_dec_noncum
+qtr_year_iter	alife/util/general.py	/^def qtr_year_iter(start_year, end_year, start_month=1, end_month=1):$/;"	f
+rmv_elems_from_list	alife/txtmine/util.py	/^def rmv_elems_from_list(lst, elems):$/;"	f
+rmv_numbers	alife/txtmine/util.py	/^def rmv_numbers(inString):$/;"	f
+rmv_punc	alife/txtmine/util.py	/^def rmv_punc(inString):$/;"	f
+run_gpe_parmap	alife/traits/fast_gpe.py	/^def run_gpe_parmap(db, trait_type, traits, init_year, end_year, init_month=1, end_month=1, debug=True):$/;"	f
+run_gpe_parmap_noncum	alife/traits/fast_gpe.py	/^def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_month=1, end_month=1, mark=False):$/;"	f
+running_avg	alife/traits/fast_gpe.py	/^def running_avg(xsum, N, new_xs):$/;"	f
+running_cov	alife/traits/fast_gpe.py	/^def running_cov(N, xsum, ysum, dotxy, new_xs, new_ys, ret_avgs = False):$/;"	f
+sample	alife/util/randpat.py	/^    def sample(self, n, replace=False, fields=None):$/;"	m	class:PatentSampler
+sampler	alife/util/randpat.py	/^    sampler = test()$/;"	v
+sanity_check	tests/test_txtmine/test_tokenizer.py	/^    def sanity_check(self):$/;"	m	class:TestTokenizer
+save	alife/txtmine/lda.py	/^    def save(self, outdir, just_lda=False):$/;"	m	class:MyLda
+save_dict	alife/util/general.py	/^def save_dict(filename, dictionary):$/;"	f
+setUp	tests/test_dooropening/test_dooropening.py	/^    def setUp(self):$/;"	m	class:TestParentChildTraitDistance
+setUp	tests/test_dooropening/test_dooropening.py	/^    def setUp(self):$/;"	m	class:TestReachComputation
+setUp	tests/test_txtmine/test_lda.py	/^    def setUp(self):$/;"	m	class:TestLda
+setUp	tests/test_txtmine/test_tokenizer.py	/^    def setUp(self):$/;"	m	class:TestTokenizer
+setUp	tests/test_txtmine/test_util.py	/^    def setUp(self):$/;"	m	class:TestLowLevelTxtUtils
+setUp	tests/test_util/test_dbutil.py	/^    def setUp(self):$/;"	m	class:TestCrawlLineage
+setUp	tests/test_util/test_dbutil.py	/^    def setUp(self):$/;"	m	class:TestGetFieldsUnordered
+setUp	tests/test_util/test_general.py	/^    def setUp(self):$/;"	m	class:test_take
+setUp	tests/test_util/test_randpat.py	/^    def setUp(self):$/;"	m	class:TestSampler
+sorted_dooropen_fields	alife/db_explorer/dooropen_explore.py	/^def sorted_dooropen_fields():$/;"	f
+squeeze	alife/visualize/pca_to_rgb.py	/^def squeeze(v):$/;"	f
+stem_words_in_list	alife/txtmine/util.py	/^def stem_words_in_list(lst):$/;"	f
+stemmer	alife/txtmine/__init__.py	/^stemmer = SnowballStemmer('english').stem$/;"	v
+step_thru_months	alife/util/general.py	/^def step_thru_months(start_yr, end_yr, start_month=1, end_month=1):$/;"	f
+step_thru_qtrs	alife/util/general.py	/^def step_thru_qtrs(start_yr, end_yr, start_month=1, end_month=1):$/;"	f
+step_thru_time	alife/util/general.py	/^def step_thru_time(start,end, delta=timedelta(days=7)):$/;"	f
+step_thru_years	alife/util/general.py	/^def step_thru_years(start_yr, end_yr, start_month=1):$/;"	f
+string_to_dt	alife/util/general.py	/^def string_to_dt(fmt_string):$/;"	f
+subnet_adj_dict	alife/util/dbutil.py	/^def subnet_adj_dict(patents):$/;"	f
+take	alife/util/general.py	/^def take(n, iterable):$/;"	f
+test	alife/db_explorer/cites_over_time.py	/^def test():$/;"	f
+test	alife/db_explorer/degree_dist.py	/^def test():$/;"	f
+test	alife/db_explorer/pats_over_time.py	/^def test():$/;"	f
+test	alife/dooropening/reach.py	/^def test():$/;"	f
+test	alife/graphmine/communities.py	/^def test():$/;"	f
+test	alife/pipeline/incidentals/insert_lda_topics.py	/^def test(limit=100):$/;"	f
+test	alife/pipeline/incidentals/insert_w2v_clusters.py	/^def test(n_docs = 100):$/;"	f
+test	alife/traits/precompute_pops.py	/^def test(lim=1000):$/;"	f
+test	alife/traits/traitshare.py	/^def test():$/;"	f
+test	alife/txtmine/w2v.py	/^def test():$/;"	f
+test	alife/util/dbutil.py	/^def test():$/;"	f
+test	alife/util/randpat.py	/^def test():$/;"	f
+test	alife/visualize/network_vis.py	/^def test():$/;"	f
+test	alife/visualize/w2v_vis.py	/^def test():$/;"	f
+test2	alife/visualize/network_vis.py	/^def test2():$/;"	f
+testCiteNetWorks	tests/test_util/test_randpat.py	/^    def testCiteNetWorks(self):$/;"	m	class:TestSampler
+testComputeGPE	tests/test_traits/test_gpe.py	/^class testComputeGPE(unittest.TestCase):$/;"	c
+testCrawl2Gens	tests/test_util/test_dbutil.py	/^    def testCrawl2Gens(self):$/;"	m	class:TestCrawlLineage
+testDocTopics	tests/test_txtmine/test_lda.py	/^    def testDocTopics(self):$/;"	m	class:TestLda
+testExport	tests/test_txtmine/test_lda.py	/^    def testExport(self):$/;"	m	class:TestLda
+testFitsGivenData	tests/test_txtmine/test_lda.py	/^    def testFitsGivenData(self):$/;"	m	class:TestLda
+testFitsLoadedData	tests/test_txtmine/test_lda.py	/^    def testFitsLoadedData(self):$/;"	m	class:TestLda
+testFullPipeline	tests/test_txtmine/test_lda.py	/^    def testFullPipeline(self):$/;"	m	class:TestLda
+testGetFieldsPatns	tests/test_util/test_dbutil.py	/^    def testGetFieldsPatns(self):$/;"	m	class:TestGetFieldsUnordered
+testGetFieldsTraits	tests/test_util/test_dbutil.py	/^    def testGetFieldsTraits(self):$/;"	m	class:TestGetFieldsUnordered
+testLoadsCorpus	tests/test_txtmine/test_lda.py	/^    def testLoadsCorpus(self):$/;"	m	class:TestLda
+testLoadsVocab	tests/test_txtmine/test_lda.py	/^    def testLoadsVocab(self):$/;"	m	class:TestLda
+testParseTopics	tests/test_txtmine/test_lda.py	/^    def testParseTopics(self):$/;"	m	class:TestLda
+testPatnsWorks	tests/test_util/test_randpat.py	/^    def testPatnsWorks(self):$/;"	m	class:TestSampler
+testPipelineWithProvidedCorpus	tests/test_txtmine/test_lda.py	/^    def testPipelineWithProvidedCorpus(self):$/;"	m	class:TestLda
+testProcessWordlists	tests/test_txtmine/test_lda.py	/^    def testProcessWordlists(self):$/;"	m	class:TestLda
+testTraitsWorks	tests/test_util/test_randpat.py	/^    def testTraitsWorks(self):$/;"	m	class:TestSampler
+testVisualize	tests/test_txtmine/test_lda.py	/^    def testVisualize(self):$/;"	m	class:TestLda
+test_deals_with_many_spaces	tests/test_txtmine/test_tokenizer.py	/^    def test_deals_with_many_spaces(self):$/;"	m	class:TestTokenizer
+test_disallows_negative	tests/test_util/test_general.py	/^    def test_disallows_negative(self):$/;"	m	class:test_take
+test_empty_list	tests/test_util/test_general.py	/^    def test_empty_list(self):$/;"	m	class:test_take
+test_func	alife/util/dbutil.py	/^    def test_func(doc):$/;"	f	function:test
+test_has_my_stoplists	tests/test_txtmine/test_stoplist.py	/^    def test_has_my_stoplists(self):$/;"	m	class:TestStopList
+test_length_preserved	tests/test_util/test_general.py	/^    def test_length_preserved(self):$/;"	m	class:test_take
+test_my_split	tests/test_txtmine/test_util.py	/^    def test_my_split(self):$/;"	m	class:TestLowLevelTxtUtils
+test_no_hyphens	tests/test_txtmine/test_tokenizer.py	/^    def test_no_hyphens(self):$/;"	m	class:TestTokenizer
+test_no_spaces	tests/test_txtmine/test_tokenizer.py	/^    def test_no_spaces(self):$/;"	m	class:TestTokenizer
+test_not_found_behavior	tests/test_txtmine/test_stoplist.py	/^    def test_not_found_behavior(self):$/;"	m	class:TestStopList
+test_take	tests/test_util/test_general.py	/^class test_take(unittest.TestCase):$/;"	c
+test_take_zero	tests/test_util/test_general.py	/^    def test_take_zero(self):$/;"	m	class:test_take
+tfidf_dist	alife/traits/__init__.py	/^def tfidf_dist(traits_a, traits_b):$/;"	f
+tfidf_traits	alife/traits/fast_gpe.py	/^tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits$/;"	v
+tfidf_weighted_avg	alife/txtmine/w2v.py	/^def tfidf_weighted_avg(pno, w2v_model, db):$/;"	f
+this_dir	alife/data/__init__.py	/^this_dir = os.path.dirname(os.path.realpath(__file__))$/;"	v
+timeFunc	alife/util/general.py	/^def timeFunc(f):$/;"	f
+timer	alife/util/general.py	/^def timer(f,n=10):$/;"	f
+tokenize	alife/txtmine/tokenizer.py	/^    def tokenize(self, inString):$/;"	m	class:Tokenizer
+topic_val	alife/traits/__init__.py	/^def topic_val(doc, topic_idx):$/;"	f
+trait_type	alife/traits/plot_gpe.py	/^    trait_type = sys.argv[1]$/;"	v
+trait_variance	alife/dooropening/reach.py	/^def trait_variance(ancestor_pno, db, trait='w2v', n_gens = 2, enforce_func = lambda x: True):$/;"	f
+update	alife/traits/fast_gpe.py	/^    def update(self, anc_pop, desc_pop):$/;"	m	class:TemporalGPE_NonCum
+update	alife/traits/fast_gpe.py	/^    def update(self, desc_pop):$/;"	m	class:TemporalGPE
+v_normalize	alife/graphmine/densityEst.py	/^def v_normalize(v):$/;"	f
+visualize	alife/txtmine/lda.py	/^    def visualize(self, outfn):$/;"	m	class:MyLda
+vocabfn	alife/txtmine/lda.py	/^        vocabfn = sys.argv[3]$/;"	v
+w2v_dim	alife/txtmine/w2v.py	/^    w2v_dim = int(sys.argv[1])$/;"	v
+w2v_dist	alife/traits/__init__.py	/^def w2v_dist(traits_a, traits_b):$/;"	f
+weibull	alife/graphmine/densityEst.py	/^def weibull(x, shape=1.5, scale=1, c=1):$/;"	f
+writer	alife/traits/gpes_to_csv.py	/^        writer = csv.writer(outfile)$/;"	v
+year_year_iter	alife/util/general.py	/^def year_year_iter(start_year, end_year, start_month=1):$/;"	f
