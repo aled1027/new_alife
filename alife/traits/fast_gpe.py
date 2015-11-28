@@ -309,22 +309,23 @@ def main_static(name):
                 writer.writerow([trait, step]+list(term_list))
 
     # Runs the GPE calculation for docvec
-    logging.info("now for docvec...")
-    gpes_docvec = run_gpe_parmap(db, 'w2v', docvec_traits,
-                                 mindate.year, maxdate.year)
+    gpes_docvec = None
+    #logging.info("now for docvec...")
+    #gpes_docvec = run_gpe_parmap(db, 'w2v', docvec_traits,
+    #                             mindate.year, maxdate.year)
 
-    # Serialize the GPE results as a pickled python dictionary.
-    logging.info("saving as pickle...")
-    pickle_obj(name+'gpes_docvec.p', gpes_docvec)
+    ## Serialize the GPE results as a pickled python dictionary.
+    #logging.info("saving as pickle...")
+    #pickle_obj(name+'gpes_docvec.p', gpes_docvec)
 
-    # Save the computed GPE terms as csv.
-    logging.info("done. saving as csv.")
-    with open(name+'gpes_docvec.csv', 'wb') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
-        for trait, series in gpes_docvec.items():
-            for step,term_list in enumerate(series):
-                writer.writerow([trait, step]+list(term_list))
+    ## Save the computed GPE terms as csv.
+    #logging.info("done. saving as csv.")
+    #with open(name+'gpes_docvec.csv', 'wb') as outfile:
+    #    writer = csv.writer(outfile)
+    #    writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+    #    for trait, series in gpes_docvec.items():
+    #        for step,term_list in enumerate(series):
+    #            writer.writerow([trait, step]+list(term_list))
 
     return gpes_tfidf, gpes_docvec
 
@@ -358,23 +359,23 @@ def main_noncum(name, mark=False):
             for step,term_list in enumerate(series):
                 writer.writerow([trait, step]+list(term_list))
 
-    # Runs the GPE calculation for docvec
-    logging.info("now for docvec...")
-    gpes_docvec = run_gpe_parmap_noncum(db, 'w2v', docvec_traits,
-                                 mindate.year, maxdate.year, mark=mark)
+    ## Runs the GPE calculation for docvec
+    #logging.info("now for docvec...")
+    #gpes_docvec = run_gpe_parmap_noncum(db, 'w2v', docvec_traits,
+    #                             mindate.year, maxdate.year, mark=mark)
 
-    # Serialize the GPE results as a pickled python dictionary.
-    logging.info("saving as pickle...")
-    pickle_obj(name+'gpes_docvec.p', gpes_docvec)
+    ## Serialize the GPE results as a pickled python dictionary.
+    #logging.info("saving as pickle...")
+    #pickle_obj(name+'gpes_docvec.p', gpes_docvec)
 
-    # Save the computed GPE terms as csv.
-    logging.info("done. saving as csv.")
-    with open(name+'gpes_docvec.csv', 'wb') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
-        for trait, series in gpes_docvec.items():
-            for step,term_list in enumerate(series):
-                writer.writerow([trait, step]+list(term_list))
+    ## Save the computed GPE terms as csv.
+    #logging.info("done. saving as csv.")
+    #with open(name+'gpes_docvec.csv', 'wb') as outfile:
+    #    writer = csv.writer(outfile)
+    #    writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+    #    for trait, series in gpes_docvec.items():
+    #        for step,term_list in enumerate(series):
+    #            writer.writerow([trait, step]+list(term_list))
 
     return gpes_tfidf, gpes_docvec
 
