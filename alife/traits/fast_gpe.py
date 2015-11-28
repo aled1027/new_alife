@@ -225,40 +225,44 @@ def compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg
 
 def run_gpe_parmap(db, trait_type, traits, init_year, end_year, init_month=1, end_month=1, debug=True):
     """
-    Runs the GPE over time for the given traits and time steps. At each timestep, the traits are updated via a parallel pool map function.
+    Runs the GPE over time for the given traits and time steps.
+    At each timestep, the traits are updated via a parallel pool map function.
     """
     init_pop = load_pop(datetime(init_year, init_month, 1))
     mapfunc1 = lambda x: TemporalGPE(trait_type, x, init_pop)
     gpes_list = parmap(mapfunc1, traits)
     current_time = datetime.now()
-    for start_year, start_month in qtr_year_iter(init_year, end_year):
-        # at each timestep, have threads go after a work queue with gpe updates
-        start_date = datetime(start_year, start_month, 1) # The date on which this time step begins.
-        logging.info("Updating GPE at time {}".format(start_date))
-        logging.info("loading pop...")
-        nxt_pop = load_pop(start_date) # nxt_pop holds the descendant population
-        logging.info("pop size: {}".format(len(nxt_pop)))
-        def mapfunc(gpe_computer):
-            logging.info("Updating trait {}...".format(gpe_computer.trait))
-            gpe_computer.update(nxt_pop)
-            return gpe_computer
-        gpes_list = parmap(mapfunc, gpes_list)
-        nxt_time = datetime.now()
-        logging.info("elapsed: {}".format(nxt_time - current_time))
-        current_time = nxt_time
-    gpes = {computer.trait: computer.gpes for computer in gpes_list}
+    csv_fn = 'alex_output'+'gpes_tfidf.csv'
+    with open(csv_fn, 'wb') as outfile:
+        for start_year, start_month in qtr_year_iter(init_year, end_year):
+            # at each timestep, have threads go after a work queue with gpe updates
+            start_date = datetime(start_year, start_month, 1) # The date on which this time step begins.
+            logging.info("Updating GPE at time {}".format(start_date))
+            logging.info("loading pop...")
+            nxt_pop = load_pop(start_date) # nxt_pop holds the descendant population
+            logging.info("pop size: {}".format(len(nxt_pop)))
+            def mapfunc(gpe_computer):
+                logging.info("Updating trait {}...".format(gpe_computer.trait))
+                gpe_computer.update(nxt_pop)
+                return gpe_computer
+            gpes_list = parmap(mapfunc, gpes_list)
+            nxt_time = datetime.now()
+            logging.info("elapsed: {}".format(nxt_time - current_time))
+            current_time = nxt_time
+        gpes = {computer.trait: computer.gpes for computer in gpes_list}
     return gpes
 
 def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_month=1, end_month=1, mark=False):
     """
     Runs the GPE over time for the given traits and time steps. At each timestep, the traits are updated via a parallel pool map function.
     """
-    mapfunc1 = lambda x: TemporalGPE_NonCum(trait_type, x)
-    gpes_list = parmap(mapfunc1, traits)
+    mapfunc1 = lambda x: TemporalGPE_NonCum(trait_type, x) # fixes trait_type
+    logging.info("Creating TemporalGPE_NonCum Objects")
+    gpes_list = parmap(mapfunc1, traits) # generate "TemporalGPE_NonCum" objects for each trait.
+    logging.info("Beginning loop over years")
+
     current_time = datetime.now()
-    # OLD: for (time_0, time_1) in step_thru_qtrs(init_year, end_year, init_month, end_month):
     for (time_0, time_1) in step_thru_years(init_year, end_year, init_month):
-    #for start_year, start_month in qtr_year_iter(init_year, end_year):
         # at each timestep, have threads go after a work queue with gpe updates
         logging.info("Updating GPE at time {}".format(time_0))
         logging.info("loading pops...")
@@ -299,14 +303,14 @@ def main_static(name):
     pickle_obj(pickle_fn, gpes_tfidf)
 
     # Save the computed GPE terms as csv.
-    csv_fn = name+'gpes_tfidf.csv'
-    logging.info("saving as csv in {}...".format(csv_fn))
-    with open(csv_fn, 'wb') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
-        for trait, series in gpes_tfidf.items():
-            for step,term_list in enumerate(series):
-                writer.writerow([trait, step]+list(term_list))
+    #csv_fn = name+'gpes_tfidf.csv'
+    #logging.info("saving as csv in {}...".format(csv_fn))
+    #with open(csv_fn, 'wb') as outfile:
+    #    writer = csv.writer(outfile)
+    #    writer.writerow(['trait', 'time_step', 't1', 't2', 't3', 'total'])
+    #    for trait, series in gpes_tfidf.items():
+    #        for step,term_list in enumerate(series):
+    #            writer.writerow([trait, step]+list(term_list))
 
     # Runs the GPE calculation for docvec
     gpes_docvec = None
@@ -334,10 +338,8 @@ def main_noncum(name, mark=False):
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 
-#    tfidf_traits = _tfidf_traits
-    tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
-
-    docvec_traits = range(200) # each cluster is a docvec trait
+    #tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
+    tfidf_traits = _interesting_tfidf_traits
 
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
@@ -361,6 +363,7 @@ def main_noncum(name, mark=False):
 
     ## Runs the GPE calculation for docvec
     #logging.info("now for docvec...")
+    #docvec_traits = range(200) # each cluster is a docvec trait
     #gpes_docvec = run_gpe_parmap_noncum(db, 'w2v', docvec_traits,
     #                             mindate.year, maxdate.year, mark=mark)
 
@@ -390,7 +393,6 @@ if __name__ == '__main__':
         logging.info('running noncum gpe.')
         main_noncum(name, mark=False)
     elif sys.argv[1] == 'MARK':
-        print('here')
         logging.info('running mark style gpe.')
         main_noncum(name, mark=True)
     else:
