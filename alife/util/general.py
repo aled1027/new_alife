@@ -7,7 +7,6 @@ import multiprocessing as mp
 import cPickle
 import numpy as np
 import time
-import numpy as np
 
 _date_fmt_string = "%Y_%m_%d"
 

@@ -202,6 +202,10 @@ class TemporalGPE_NonCum(object):
         self.quotient = [] # |P^{a_i} \cap P^{a_{i+1}}| / |P^{a_i} \cup P^{a_{i+1}}|
         self.absolute_mutations = [] # \sum_a \sum_d (1 if x^a == x_d else 0)
 
+    def data(self):
+        return (self.trait_type, self.trait, self.gpes, self.Pa, self.Pd, \
+                self.X_bar_a, self.X_bar_d, self.quotient, self.absolute_mutations)
+
     def update(self, anc_pop, desc_pop):
         """
         Get the statistics we need from the populations to compute the GPE terms.
@@ -329,7 +333,8 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
         nxt_time = datetime.now()
         logging.info("elapsed: {}".format(nxt_time - current_time))
         current_time = nxt_time
-    gpes = {computer.trait: computer.gpes for computer in gpes_list}
+    #gpes = {computer.trait: computer.gpes for computer in gpes_list}
+    gpes = {trait_object.trait: trait_object.data() for trait_object in gpes_list}
     return gpes
 
 def main_static(name):
@@ -386,13 +391,13 @@ def main_noncum(name, mark=False):
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 
-    #tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
-    tfidf_traits = _single_tfidf_trait
+    tfidf_traits = list(set(freq_prop_sample(1000)+_tfidf_traits))
+    #tfidf_traits = _single_tfidf_trait
 
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
     # TODO undo this for real calculation
-    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, 1994, 2015, mark=mark)
+    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, 1978, 2015, mark=mark)
     #gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, mindate.year, maxdate.year, mark=mark)
 
     # Serialize the GPE results as a pickled python dictionary.
@@ -410,6 +415,7 @@ def main_noncum(name, mark=False):
             for step,term_list in enumerate(series):
                 writer.writerow([trait, step]+list(term_list))
 
+    gpes_docvec = None
     ## Runs the GPE calculation for docvec
     #logging.info("now for docvec...")
     #docvec_traits = range(200) # each cluster is a docvec trait
