@@ -27,6 +27,8 @@ _pop_dir = '/Users/jmenick/Desktop/alife_refactor/alife/traits/precomputed_pops_
 
 # be sure we are using the right traits.
 allstems = [x[0] for x in _load_df()]
+_single_tfidf_trait = ['internet']
+
 _interesting_tfidf_traits = ['hyperlink', 'dna', 'internet', 'mobil',
                              'semiconductor', 'softwar', 'batteri', 'crypto',
                              'video', 'fluroesc', 'diode','prosthet',
@@ -123,6 +125,9 @@ def get_traits(population, trait_type, trait):
     of the population. This can be binary or real-valued, depending on
     the nature of the trait. The function used to determine the value
     (which can 'binarize') is given in the _trait_info dictionary.
+
+    e.g. if input=([pat for google, pat for facebook, pat for dry erase board], tf-idf, internet)
+         returns np.array([1,1,0]) if google/facebook have internet in tf-idf traits, etc.
     """
     _,_,_,trait_val = _trait_info[trait_type]
     return np.array([trait_val(doc, trait) for doc in population])
@@ -189,8 +194,20 @@ class TemporalGPE_NonCum(object):
         self.trait = trait
         self.gpes = []
 
+        # metadata terms
+        self.Pa = [] # size of P^a, number of patents with x
+        self.Pd = [] # size of P_d
+        self.X_bar_a = [] # value of \bar{X^a}
+        self.X_bar_d = [] # value of \bar{X_d}
+        self.quotient = [] # |P^{a_i} \cap P^{a_{i+1}}| / |P^{a_i} \cup P^{a_{i+1}}|
+        self.absolute_mutations = [] # \sum_a \sum_d (1 if x^a == x_d else 0)
+
     def update(self, anc_pop, desc_pop):
-        # Get the statistics we need from the populations to compute the GPE terms.
+        """
+        Get the statistics we need from the populations to compute the GPE terms.
+        anc_pop: list of ancestors, where an element is
+        """
+        # get_traits returns vector of traits. [0,0,1,0,...] if tf-idf because stemmed.
         anc_traits = get_traits(anc_pop, self.trait_type, self.trait)
         desc_traits = get_traits(desc_pop, self.trait_type, self.trait)
         anc_nchildren = np.array([x.get('n_citedby', 0) for x in anc_pop])
@@ -206,6 +223,34 @@ class TemporalGPE_NonCum(object):
         gpe_terms = compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg)
         logging.info("trait: {}, gpe_terms: {}".format(self.trait, gpe_terms))
         self.gpes.append(gpe_terms)
+
+        # now update metadata:
+
+        self.Pa.append(np.sum(anc_traits))
+        self.Pd.append(np.sum(desc_traits))
+
+        anc_traits = np.array(list(anc_traits))
+        desc_traits = np.array(list(desc_traits))
+        anc_traits_size = np.size(anc_traits)
+        desc_traits_size = np.size(desc_traits)
+
+        self.X_bar_a.append(float(self.Pa[-1] / anc_traits_size))
+        self.X_bar_d.append(float(self.Pd[-1] / desc_traits_size))
+        # use xor to get number of absolute mutations
+
+        max_length = max(anc_traits_size, desc_traits_size)
+        anc_traits.resize(max_length)
+        desc_traits.resize(max_length)
+        self.absolute_mutations.append(np.sum(np.logical_xor(anc_traits, desc_traits)))
+
+        logging.info("trait: {}, Pa: {}, Pd: {}, X_bar_a: {}, X_bar_d: {}, Muts: {}"
+                .format(self.trait, self.Pa[-1], self.Pd[-1], self.X_bar_a[-1], self.X_bar_d[-1], self.absolute_mutations[-1]))
+
+        # TODO: to get quotient, need to check how to get patent numbers
+        # from the populations. Idea is simple: store patent numbers from previous calculation
+        # take the intersection and union, compute size. "memoized" is the technical term.
+
+
 
 def compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg, sample_cov = True):
     """ compute the terms of the gpe for a single trait over a single period of evolution,
@@ -266,12 +311,15 @@ def run_gpe_parmap_noncum(db, trait_type, traits, init_year, end_year, init_mont
         # at each timestep, have threads go after a work queue with gpe updates
         logging.info("Updating GPE at time {}".format(time_0))
         logging.info("loading pops...")
+        temptime1 = datetime.now()
         if mark:
             anc_pop, desc_pop = get_anc_dec_mark(db, time_0, time_1, limit = None)
             #anc_pop, desc_pop = load_anc_dec(start_date, indir = _mark_dir)
         else:
             anc_pop, desc_pop = get_anc_noncum(db, time_0, time_1, limit = None)
             #anc_pop, desc_pop = load_anc_dec(start_date, indir = _noncum_dir)
+        temptime2 = datetime.now()
+        logging.info("time to load pops: {}".format(temptime2 - temptime1))
         logging.info("anc pop size: {}, desc pop size: {}".format(len(anc_pop), len(desc_pop)))
         def mapfunc(gpe_computer):
             logging.info("Updating trait {}...".format(gpe_computer.trait))
@@ -339,12 +387,13 @@ def main_noncum(name, mark=False):
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 
     #tfidf_traits = list(set(freq_prop_sample(3500)+_tfidf_traits))
-    tfidf_traits = _interesting_tfidf_traits
+    tfidf_traits = _single_tfidf_trait
 
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
-    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits,
-                                       mindate.year, maxdate.year, mark=mark)
+    # TODO undo this for real calculation
+    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, 1994, 2015, mark=mark)
+    #gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, mindate.year, maxdate.year, mark=mark)
 
     # Serialize the GPE results as a pickled python dictionary.
     pickle_fn = name+'gpes_tfidf_3k.p'

@@ -1,5 +1,5 @@
 # Precomputes the populations at each time step, so that they can be re-used
-# (i.e. just computed once) for each trait or trait-type. This is the bottleneck for the GPE calculation that we are attempting to offload. 
+# (i.e. just computed once) for each trait or trait-type. This is the bottleneck for the GPE calculation that we are attempting to offload.
 import numpy as np
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from pprint import pprint
 from alife.util.general import pickle_obj, pairwise_iter
 from alife.util.general import dt_as_str, string_to_dt
-from alife.util.general import step_thru_time, step_thru_months, step_thru_qtrs 
+from alife.util.general import step_thru_time, step_thru_months, step_thru_qtrs
 from matplotlib import pyplot as plt
 
 
@@ -42,8 +42,8 @@ def get_new_descendants(db, time_0, time_1, limit = None):
     return descendants
 
 def get_anc_dec_noncum(db, time_0, time_1, limit = None):
-    """ Get the ancestral and descendant populations for the period of evolution between time_0 and time_1. 
-    Count the number of children non-cumulatively. I.e. the number of children an ancestor has is the number of 
+    """ Get the ancestral and descendant populations for the period of evolution between time_0 and time_1.
+    Count the number of children non-cumulatively. I.e. the number of children an ancestor has is the number of
     patents *in the current descendant population* which cite it.
     """
     fields = ['_id', 'citedby', 'rawcites', 'top_tf-idf', 'wordvec_clusters']
@@ -73,44 +73,45 @@ def get_anc_dec_noncum(db, time_0, time_1, limit = None):
 
 
 def get_anc_dec_mark(db, time_0, time_1, limit = None):
-    """ Get the ancestral and descendant populations for the period of evolution between time_0 and time_1. 
-    Count the number of children non-cumulatively. I.e. the number of children an ancestor has is the number of 
+    """ Get the ancestral and descendant populations for the period of evolution between time_0 and time_1.
+    Count the number of children non-cumulatively. I.e. the number of children an ancestor has is the number of
     patents *in the current descendant population* which cite it. In the fashion mark requested, consider the
     ancestral population to be *only those patents cited in this period*.
     """
-    fields = ['_id', 'rawcites', 'top_tf-idf', 'wordvec_clusters']
+    # TODO change if doing w2vec
+    #fields = ['_id', 'rawcites', 'top_tf-idf', 'wordvec_clusters']
+    fields = ['_id', 'rawcites', 'top_tf-idf']
     nils = [None, None, [], []]
     projection = {field:1 for field in fields}
     if limit is None or limit <= 0:
         limit = db.traits.count()
-    enforcefunc = lambda x: all(
+    enforcefunc = lambda x: x is not None and all(
         x.get(field,nil) != nil for field,nil in zip(fields,nils) if x is not None
     )
-    descendants = [d for d in db.traits.find({'isd': {'$gte': time_0, '$lt': time_1}}, projection).limit(limit) if enforcefunc(d)]
+    descendants = filter(enforcefunc, db.traits.find({'isd': {'$gte': time_0, '$lt': time_1}}, projection).limit(limit))
 
-    # get the ancestors.
+    # get the ancestors
     anc_child_ctr = defaultdict(int)
     for d in descendants:
         for cited_pno in d.get('rawcites', []):
             anc_child_ctr[cited_pno] += 1
     anc_pnos, anc_childcounts = zip(*anc_child_ctr.items())
+    # TODO big time suck:
     ancestors = [db.traits.find_one({'_id': pno}, projection) for pno in anc_pnos]
+    # is anything actually happening on this line?
     ancestors, anc_childcounts = zip(*[(a,c) for a,c in zip(ancestors,anc_childcounts) if enforcefunc(a) and a is not None])
     assert(len(ancestors) == len(anc_childcounts))
-
     for a,c in zip(ancestors, anc_childcounts):
         a['n_citedby'] = c
         a.pop('rawcites', None)
-        
     def process_dec(dec):
         dec['n_rawcites'] = len(dec.get('rawcites'))
         dec.pop('rawcites', None)
         return dec
-
-    return [anc for anc in ancestors], [process_dec(dec) for dec in descendants]
+    return ancestors, map(process_dec, descendants)
 
 def dump_descendants_over_time(db, time_pairs, outdir, limit = None, debug = True):
-    # also returns a histogram of pop sizes. 
+    # also returns a histogram of pop sizes.
     times = []
     popsizes = []
     for (time_0, time_1) in time_pairs:

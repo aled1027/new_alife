@@ -1,7 +1,6 @@
 *pyc
 *npy
-*log
-*csv
+log
 *png
 *pdf
 *.svmlight
