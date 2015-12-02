@@ -43,6 +43,15 @@ _uninteresting_tfidf_traits = ['results','consists','adjustme',
                                'small','path']
 tfidf_traits = _interesting_tfidf_traits + _uninteresting_tfidf_traits
 _tfidf_traits = [x if x in allstems else stemfunc(x) for x in tfidf_traits]
+
+def get_old_traits():
+    """ Grabs terms from original gpe run. Terms are at saved in a numpy 0-d array."""
+    file_path = 'data/gpe_terms.npy'
+    a = np.load(file_path)
+    b = a.item()
+    terms = list(b.keys())
+    return terms
+
 assert(all(x in allstems for s in _tfidf_traits))
 
 # helpers
@@ -199,12 +208,12 @@ class TemporalGPE_NonCum(object):
         self.Pd = [] # size of P_d
         self.X_bar_a = [] # value of \bar{X^a}
         self.X_bar_d = [] # value of \bar{X_d}
-        self.quotient = [] # |P^{a_i} \cap P^{a_{i+1}}| / |P^{a_i} \cup P^{a_{i+1}}|
         self.absolute_mutations = [] # \sum_a \sum_d (1 if x^a == x_d else 0)
+        # self.quotient = [] # |P^{a_i} \cap P^{a_{i+1}}| / |P^{a_i} \cup P^{a_{i+1}}|
 
     def data(self):
         return (self.trait_type, self.trait, self.gpes, self.Pa, self.Pd, \
-                self.X_bar_a, self.X_bar_d, self.quotient, self.absolute_mutations)
+                self.X_bar_a, self.X_bar_d, self.absolute_mutations)
 
     def update(self, anc_pop, desc_pop):
         """
@@ -229,7 +238,6 @@ class TemporalGPE_NonCum(object):
         self.gpes.append(gpe_terms)
 
         # now update metadata:
-
         self.Pa.append(np.sum(anc_traits))
         self.Pd.append(np.sum(desc_traits))
 
@@ -238,9 +246,8 @@ class TemporalGPE_NonCum(object):
         anc_traits_size = np.size(anc_traits)
         desc_traits_size = np.size(desc_traits)
 
-        self.X_bar_a.append(float(self.Pa[-1] / anc_traits_size))
-        self.X_bar_d.append(float(self.Pd[-1] / desc_traits_size))
-        # use xor to get number of absolute mutations
+        self.X_bar_a.append(float(self.Pa[-1]) / float(anc_traits_size))
+        self.X_bar_d.append(float(self.Pd[-1]) / float(desc_traits_size))
 
         max_length = max(anc_traits_size, desc_traits_size)
         anc_traits.resize(max_length)
@@ -249,12 +256,6 @@ class TemporalGPE_NonCum(object):
 
         logging.info("trait: {}, Pa: {}, Pd: {}, X_bar_a: {}, X_bar_d: {}, Muts: {}"
                 .format(self.trait, self.Pa[-1], self.Pd[-1], self.X_bar_a[-1], self.X_bar_d[-1], self.absolute_mutations[-1]))
-
-        # TODO: to get quotient, need to check how to get patent numbers
-        # from the populations. Idea is simple: store patent numbers from previous calculation
-        # take the intersection and union, compute size. "memoized" is the technical term.
-
-
 
 def compute_gpe_raw(anc_traits, desc_traits, nchildren_rel_avg, nparents_rel_avg, sample_cov = True):
     """ compute the terms of the gpe for a single trait over a single period of evolution,
@@ -391,14 +392,16 @@ def main_noncum(name, mark=False):
     mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
     maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
 
-    tfidf_traits = list(set(freq_prop_sample(1000)+_tfidf_traits))
+    #tfidf_traits = list(set(freq_prop_sample(1000)+_tfidf_traits))
     #tfidf_traits = _single_tfidf_trait
+    tfidf_traits = list(get_old_traits())
+    logging.info("Using {} tfidf traits".format(len(tfidf_traits)))
 
     # Runs the GPE calculation for TFIDF
     logging.info("starting with tfidf...")
     # TODO undo this for real calculation
-    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, 1978, 2015, mark=mark)
-    #gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, mindate.year, maxdate.year, mark=mark)
+    #gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, 1980, 1982, mark=mark)
+    gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, mindate.year, maxdate.year, mark=mark)
 
     # Serialize the GPE results as a pickled python dictionary.
     pickle_fn = name+'gpes_tfidf_3k.p'
