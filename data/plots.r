@@ -49,9 +49,10 @@ traits <- c("bone",
                "spinal",
                "needl",
                "patient")
+
 for( i in 1:length(traits) ) {
   fn <- paste(traits[i], ".pdf", sep="")
-  title <- paste(traits[i], " binned by year")
+  title <- paste(traits[i], "binned by year")
   pdf(fn)
   
   plot(dates, dat[dat[,1]=="internet", 3],
@@ -73,7 +74,6 @@ for( i in 1:length(traits) ) {
   # lines(dates, dat[dat[,1]==traits[i], 11], col="violet", lwd=4) doesn't show up.
   dev.off()
 }
-
 
 ####################################
 
