@@ -1,3 +1,46 @@
+#############################################
+# Alex all traits binned by year results:
+#############################################
+#setwd('/home/alex/SpiderOak Hive/all_notes/fall/alife/data/year_plots')
+#run1 <- "gpe_tfidf_year_run1.csv" # not sure what years it went from 1978->2015?
+#run2 <- "gpe_tfidf_year_run2.csv" # run2 went from 1976 to 2012
+run2 <- "gpe_tfidf_year_run2_updated.csv"
+dat <- read.table(run2, header=TRUE, sep=",")
+dates <- seq(as.Date("04/01/1976", format = "%d/%m/%Y"), by = "year", length = length(dat[dat[,1]=="internet", 2]))
+
+traits = unique(dat[["trait"]])
+#traits = traits[0:3]
+
+for( i in 1:length(traits) ) {
+  fn <- paste(traits[i], ".pdf", sep="")
+  title <- paste(traits[i], "binned by year")
+  pdf(fn)
+  
+  plot(dates, dat[dat[,1]=="internet", 3],
+       type="n", ylab="Value", xlab="Year (sampled yearly)", ylim=c(-0.01,0.01),
+       main=title, col.main="black",
+       sub="", col.sub="green")
+  
+  legend("topleft", inset = 0, title = "Curves", 
+         legend= c("t1", "t2", "t3", "tot", expression(bar(X^a)), expression(bar(X[d])), "real delta"),
+         fill = c("red","green","blue","yellow", "orange", "pink", "purple"), horiz=FALSE)
+  
+  
+  lines(dates, dat[dat[,1]==traits[i], 3], col="red", lwd=4)
+  lines(dates, dat[dat[,1]==traits[i], 4], col="green", lwd=4)
+  lines(dates, dat[dat[,1]==traits[i], 5], col="blue", lwd=4)
+  lines(dates, dat[dat[,1]==traits[i], 6], col="yellow", lwd=4)
+  lines(dates, dat[dat[,1]==traits[i], 9], col="orange", lwd=4)
+  lines(dates, dat[dat[,1]==traits[i], 10], col="pink", lwd=4)
+  lines(dates, dat[dat[,1]==traits[i], 12], col="purple", lwd=4)
+  
+  # lines(dates, dat[dat[,1]==traits[i], 11], col="violet", lwd=4) doesn't show up.
+  dev.off()
+}
+
+####################################
+####################################
+
 # read in the data
 # timesteps vary between 150 (0-149) and 151 (0-150); best to truncate all to 150 quarters
 # set working directory if necessary e.g. setwd('~/Desktop/.')
@@ -34,48 +77,6 @@ for( i in 1:length(hottraits) ) {
   #OLD lines(dat[dat[,1]=="there", 2], dat[dat[,1]==hottraits[i], 3], col="green", lwd=4)
 }
 
-####################################
-# Alex quick mockup of binned by year results:
-###############
-run1 <- "gpe_tfidf_year_run1.csv" # not sure what years it went from 1978->2015?
-run2 <- "gpe_tfidf_year_run2.csv" # run2 went from 1976 to 2012
-dat <- read.table(run2, header=TRUE, sep=",")
-dates <- seq(as.Date("04/01/1976", format = "%d/%m/%Y"), by = "year", length = length(dat[dat[,1]=="internet", 2]))
-
-traits <- c("bone",
-               "implant",
-               "medic",
-               "instrument",
-               "spinal",
-               "needl",
-               "patient")
-
-for( i in 1:length(traits) ) {
-  fn <- paste(traits[i], ".pdf", sep="")
-  title <- paste(traits[i], "binned by year")
-  pdf(fn)
-  
-  plot(dates, dat[dat[,1]=="internet", 3],
-       type="n", ylab="Value", xlab="Year (sampled yearly)", ylim=c(-0.001,0.01),
-       main=title, col.main="black",
-       sub="", col.sub="green")
-  
-  legend("topleft", inset = 0, title = "Curves", 
-         legend= c("t1", "t2", "t3", "tot", expression(bar(X^a)), expression(bar(X[d])), "muts"),
-         fill = c("green","blue","red","purple", "orange", "pink","violet"), horiz=FALSE)
-  
-  
-  lines(dates, dat[dat[,1]==traits[i], 3], col="green", lwd=4)
-  lines(dates, dat[dat[,1]==traits[i], 4], col="blue", lwd=4)
-  lines(dates, dat[dat[,1]==traits[i], 5], col="red", lwd=4)
-  lines(dates, dat[dat[,1]==traits[i], 6], col="purple", lwd=4)
-  lines(dates, dat[dat[,1]==traits[i], 9], col="orange", lwd=4)
-  lines(dates, dat[dat[,1]==traits[i], 10], col="pink", lwd=4)
-  # lines(dates, dat[dat[,1]==traits[i], 11], col="violet", lwd=4) doesn't show up.
-  dev.off()
-}
-
-####################################
 
 maxx <- max(dat[,3:6])
 minn <- min(dat[,3:6])

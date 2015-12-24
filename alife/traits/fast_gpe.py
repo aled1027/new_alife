@@ -246,8 +246,12 @@ class TemporalGPE_NonCum(object):
         anc_traits_size = np.size(anc_traits)
         desc_traits_size = np.size(desc_traits)
 
-        self.X_bar_a.append(float(self.Pa[-1]) / float(anc_traits_size))
-        self.X_bar_d.append(float(self.Pd[-1]) / float(desc_traits_size))
+        self.X_bar_a.append(np.mean(anc_traits))
+        self.X_bar_a.append(np.mean(desc_traits))
+
+        # above should be the same as:
+        #self.X_bar_a.append(float(self.Pa[-1]) / float(anc_traits_size))
+        #self.X_bar_d.append(float(self.Pd[-1]) / float(desc_traits_size))
 
         max_length = max(anc_traits_size, desc_traits_size)
         anc_traits.resize(max_length)
