@@ -444,6 +444,61 @@ def main_noncum(name, mark=False):
 
     return gpes_tfidf, gpes_docvec
 
+def main_noncum_unseen(name, mark=False):
+    """
+    This finds the number of unseen ancestors.
+    An unseen ancestors is .... TODO
+    """
+    db = MongoClient().patents
+
+    tfidf_traits = list(get_old_traits())
+    logging.info("Using {} tfidf traits".format(len(tfidf_traits)))
+
+    # Runs the GPE calculation for TFIDF
+    logging.info("starting with tfidf...")
+    #gpes_tfidf = run_gpe_parmap_noncum(db, 'tf-idf', tfidf_traits, mindate.year, maxdate.year, mark=mark)
+
+    mindate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', 1).limit(1))[0]['isd']
+    maxdate = list(db.traits.find({'isd': {'$exists': True}}).sort('isd', -1).limit(1))[0]['isd']
+    init_month = 1
+    for (time_0, time_1) in step_thru_years(mindate.year, maxdata.year, init_month):
+        logging.info("loading pops for time {}".format(time_0))
+        temptime1 = datetime.now()
+        if mark:
+            # rawcites is a list of the patents cited
+            fields = ['_id', 'rawcites', 'top_tf-idf']
+            nils = [None, None, [], []]
+            projection = {field:1 for field in fields}
+            limit = db.traits.count()
+            enforcefunc = lambda x: x is not None and all(
+                x.get(field,nil) != nil for field,nil in zip(fields,nils) if x is not None
+            )
+            descendants = filter(enforcefunc, db.traits.find({'isd': {'$gte': time_0, '$lt': time_1}}, projection).limit(limit))
+
+            anc_child_ctr = defaultdict(int)
+            for d in descendants:
+                for cited_pno in d.get('rawcites', []):
+                    anc_child_ctr[cited_pno] += 1
+            log.info("patents cited (discard duplicates): {}".format(len(anc_child_ctr))
+            log.info("patents cited (include duplicates): {}".format(sum(list(anc_child_ctr.values())))
+            ancestors = [db.traits.find_one({'_id': pno}, projection) for pno in anc_pnos]
+            assert(len(ancestors) == len(anc_childcounts))
+            for a,c in zip(ancestors, anc_childcounts):
+                a['n_citedby'] = c
+                a.pop('rawcites', None)
+            def process_dec(dec):
+                dec['n_rawcites'] = len(dec.get('rawcites'))
+                dec.pop('rawcites', None)
+                return dec
+            logging.info("anc pop size: {}, desc pop size: {}".format(len(anc_pop), len(desc_pop)))
+            logging.info("unseen pops: {}".format(len(anc_child_ctr) - len(anc_pop)))
+            unseen_pop_dict[time_0] = len(anc_child_ctr) - len(anc_pop)
+        else:
+            RuntimeError("This case is not defined")
+        temptime2 = datetime.now()
+        logging.info("time to load pops: {}".format(temptime2 - temptime1))
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'> <NAME>".format(sys.argv[0]))
@@ -457,8 +512,12 @@ if __name__ == '__main__':
     elif sys.argv[1] == 'MARK':
         logging.info('running mark style gpe.')
         main_noncum(name, mark=True)
+    elif sys.argv[1] == 'MARK-UNSEEN':
+        logging.info('running mark style to find unseen ancestors')
+        main_noncum_unseen(name, mark=True)
     else:
         sys.exit("Usage: python {} <'STATIC' or 'NONCUM' or 'MARK'> <NAME>".format(sys.argv[0]))
+
 
 
 
